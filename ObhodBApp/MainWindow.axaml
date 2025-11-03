@@ -1,0 +1,112 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+        xmlns:skiaSharpView="clr-namespace:LiveChartsCore.SkiaSharpView;assembly=LiveChartsCore.SkiaSharpView"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="900"
+        Height="900"
+        Width="600"
+        x:Class="ObhodBApp.MainWindow"
+        Title="ObhodBApp">
+    <DockPanel>
+        <!-- Верхнее меню -->
+        <Menu DockPanel.Dock="Top">
+            <!-- Файл -->
+            <MenuItem>
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <materialIcons:MaterialIcon Kind="File" />
+                        <TextBlock Text="Файл" />
+                    </StackPanel>
+                </MenuItem.Header>
+
+                <MenuItem>
+                    <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <materialIcons:MaterialIcon Kind="FolderOpen" />
+                            <TextBlock Text="Открыть..." />
+                        </StackPanel>
+                    </MenuItem.Header>
+                </MenuItem>
+
+                <MenuItem>
+                    <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <materialIcons:MaterialIcon Kind="ContentSave" />
+                            <TextBlock Text="Сохранить" />
+                        </StackPanel>
+                    </MenuItem.Header>
+                </MenuItem>
+
+                <MenuItem>
+                    <MenuItem.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <materialIcons:MaterialIcon Kind="ExitToApp" />
+                            <TextBlock Text="Выход" />
+                        </StackPanel>
+                    </MenuItem.Header>
+                </MenuItem>
+            </MenuItem>
+
+            <!-- Настройки -->
+            <MenuItem>
+                <MenuItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <materialIcons:MaterialIcon Kind="Settings" />
+                        <TextBlock Text="Настройки" />
+                    </StackPanel>
+                </MenuItem.Header>
+            </MenuItem>
+        </Menu>
+
+        <!-- Основное содержимое -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="300"></RowDefinition>
+            </Grid.RowDefinitions>
+            
+            <DropDownButton Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" CornerRadius="100" FontSize="30" Padding="10" FontWeight="Bold" Margin="20" Content=" Выберите профиль NGPN">
+                <DropDownButton.Flyout>
+                    <MenuFlyout>
+                        <MenuItem Header="Option 1" />
+                        <MenuItem Header="Option 2" />
+                        <MenuItem Header="Option 3" />
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+            <Button Grid.Row="1" Name="MainBtn" Margin="40" HorizontalAlignment="Center" CornerRadius="100" Click="MainBtn_OnClick">
+                <materialIcons:MaterialIcon Name="MainBtnIcon" Padding="20" Kind="Web" IconSize="150" />
+            </Button>
+            <TextBlock Grid.Row="2" FontSize="20" FontWeight="Bold" Name="IpInfo" Text="Ваш IP: ..." HorizontalAlignment="Center"/>
+            <Button Grid.Row="3" CornerRadius="100" HorizontalAlignment="Center" Margin="10" Padding="10" FontSize="20" FontWeight="Bold">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <materialIcons:MaterialIcon Kind="Upload" Foreground="Orange"/>
+                    <TextBlock VerticalAlignment="Center" Name="UplText" >10Mb/s</TextBlock>
+                    <materialIcons:MaterialIcon Kind="Download" Foreground="Green"/>
+                    <TextBlock VerticalAlignment="Center" Name="DwlText">10Mb/s</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Grid.Row="4" CornerRadius="100" HorizontalAlignment="Center" Margin="10" Padding="10" FontSize="20" FontWeight="Bold">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <materialIcons:MaterialIcon Kind="TrayDownload"/>
+                    <TextBlock VerticalAlignment="Center" Name="TrafficText">10Mb/s</TextBlock>
+                </StackPanel>
+            </Button>
+            <lvc:CartesianChart Grid.Row="5" Name="Chart" Height="300">
+                <lvc:CartesianChart.XAxes>
+                    <skiaSharpView:Axis IsVisible="False" />
+                </lvc:CartesianChart.XAxes>
+                <lvc:CartesianChart.YAxes>
+                    <skiaSharpView:Axis IsVisible="False" />
+                </lvc:CartesianChart.YAxes>
+            </lvc:CartesianChart>
+        </Grid>
+    </DockPanel>
+</Window>

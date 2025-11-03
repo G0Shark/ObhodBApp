@@ -1,0 +1,69 @@
+mixed-port: 7890
+allow-lan: true
+mode: rule
+log-level: info
+
+tun:
+  enable: true
+  stack: system
+  auto-route: true
+  auto-detect-interface: true
+  dns-hijack:
+    - 198.18.0.2:53
+
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  ipv6: false
+  enhanced-mode: fake-ip
+  nameserver:
+    - 1.1.1.1
+    - 8.8.8.8
+  fallback:
+    - tls://1.1.1.1
+    - tls://dns.google
+  fallback-filter:
+    geoip: true
+    geoip-code: US
+
+proxies:
+  - name: "socks5-proxy"
+    type: socks5
+    server: 127.0.0.1
+    port: 1080
+    udp: true
+
+proxy-groups:
+  - name: "ObhodBlokirovok"
+    type: select
+    proxies:
+      - "socks5-proxy"
+
+rules:
+  # YouTube
+  - DOMAIN-SUFFIX,youtube.com,ObhodBlokirovok
+  - DOMAIN-SUFFIX,googlevideo.com,ObhodBlokirovok
+  - DOMAIN-SUFFIX,ytimg.com,ObhodBlokirovok
+  - DOMAIN-SUFFIX,sponsor.ajay.com,ObhodBlokirovok
+  - DOMAIN-KEYWORD,youtube,ObhodBlokirovok
+  - DOMAIN-KEYWORD,googlevideo,ObhodBlokirovok
+  - DOMAIN-KEYWORD,ytimg,ObhodBlokirovok
+  # X.com / Twitter
+  - DOMAIN-SUFFIX,x.com,ObhodBlokirovok
+  - DOMAIN-SUFFIX,twitter.com,ObhodBlokirovok
+  - DOMAIN-KEYWORD,twitter,ObhodBlokirovok
+  - DOMAIN-KEYWORD,twitter,ObhodBlokirovok
+  # Discord
+  - PROCESS-NAME,vesktop.exe,ObhodBlokirovok
+  # DeviantArt
+  - DOMAIN-SUFFIX,wixmp,ObhodBlokirovok
+  - DOMAIN-SUFFIX,winxmp.com,ObhodBlokirovok
+  - DOMAIN-KEYWORD,wixmp,ObhodBlokirovok
+  - DOMAIN-KEYWORD,speedtest,ObhodBlokirovok
+  # батла
+  - PROCESS-NAME,bf6.exe,ObhodBlokirovok
+  - DOMAIN-KEYWORD,rule34,ObhodBlokirovok
+  - DOMAIN-KEYWORD,discord,ObhodBlokirovok
+  - PROCESS-NAME,Discord.exe,ObhodBlokirovok
+  - DOMAIN-KEYWORD,twimg,ObhodBlokirovok
+  - MATCH,DIRECT
