@@ -35,6 +35,14 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _ = testbytes();
+        
+        Chart.YAxes = new Axis[]
+        {
+            new Axis
+            {
+                Labeler = value => FormatBytes((long)value)
+            }
+        };
     }
     private async Task testbytes()
     {

@@ -104,7 +104,7 @@
                     <skiaSharpView:Axis IsVisible="False" />
                 </lvc:CartesianChart.XAxes>
                 <lvc:CartesianChart.YAxes>
-                    <skiaSharpView:Axis IsVisible="False" />
+                    <skiaSharpView:Axis IsVisible="True" />
                 </lvc:CartesianChart.YAxes>
             </lvc:CartesianChart>
         </Grid>
