@@ -52,14 +52,11 @@ public partial class MainWindow : Window
                 Labeler = value => FormatBytes((long)value)
             }
         };
-        controller.AddConsoleLine("счёт байтовdddd", Colors.Yellow);
     }
     private async Task testbytes()
     {
         while (true)
         {
-            controller.AddConsoleLine("счёт байтов", Colors.Yellow);
-            
             var stats1 = adapter.GetIPv4Statistics();
             long recv1 = stats1.BytesReceived;
             long sent1 = stats1.BytesSent;

@@ -22,6 +22,8 @@ public class ClashController
         this.window = window;
 
         mainDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+
+        FormatLogLine("time=\"2025-11-04T16:07:17.832319100+03:00\" level=info msg=\"[TCP] 198.18.0.1:56792(EpicGamesLauncher.exe) --> datarouter.ol.epicgames.com:443 match Match using DIRECT\"");
     }
     
     public void Start()
@@ -35,8 +37,32 @@ public class ClashController
             RedirectStandardOutput = true,
             RedirectStandardError = true
         };
+        
+        clash = new Process
+        {
+            StartInfo = clashsi,
+            EnableRaisingEvents = true
+        };
+        
+        clash.OutputDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data); }); };
+        clash.ErrorDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data); }); };
     }
-    
+
+    private void FormatAndOut(string logLine)
+    {
+        var result = ParseDefaultClashLogs(logLine);
+
+        if (result.Level != "info")
+        {
+            AddConsoleLine("[ ", Colors.White);
+            AddConsoleLine(result.Level.ToUpper(), Colors.Red);
+            AddConsoleLine(" ] " + result.Msg + "\n", Colors.White);
+            return;
+        }
+        
+        FormatLogLine(result.Msg);
+    }
+
     void FormatLogLine(string line)
     {
         // Парсим лог
@@ -65,11 +91,31 @@ public class ClashController
         AddConsoleLine($" ({ruleInfo})\n", Colors.Gray);
     }
     
+    public static (string Time, string Level, string Msg) ParseDefaultClashLogs(string log)
+    {
+        // Регулярное выражение для разбора строки
+        var regex = new Regex(@"time=""(?<time>.*?)""\s+level=(?<level>\w+)\s+msg=""(?<msg>.*)""");
+        var match = regex.Match(log);
+        
+        if (match.Success)
+        {
+            return (
+                match.Groups["time"].Value,
+                match.Groups["level"].Value,
+                match.Groups["msg"].Value
+            );
+        }
+        else
+        {
+            return (null, null, null);
+        }
+    }
+    
     public void AddConsoleLine(string text, Color color)
     {
         var run = new Run
         {
-            Text = text + "\n",
+            Text = text,
             Foreground = new SolidColorBrush(color)
         };
         window.ConsoleTextBlock.Inlines.Add(run);
