@@ -31,6 +31,10 @@ public partial class MainWindow : Window
     {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
+
+    private long recvAllSecs = 0;
+    private long sendAllSecs = 0;
+    private int secs = 0;
     public MainWindow()
     {
         InitializeComponent();
@@ -51,7 +55,9 @@ public partial class MainWindow : Window
             var stats1 = adapter.GetIPv4Statistics();
             long recv1 = stats1.BytesReceived;
             long sent1 = stats1.BytesSent;
-
+            
+            ErrPckText.Text = (stats1.IncomingPacketsWithErrors + stats1.OutgoingPacketsWithErrors).ToString();
+            
             await Task.Delay(1000);
 
             var stats2 = adapter.GetIPv4Statistics();
@@ -61,6 +67,14 @@ public partial class MainWindow : Window
             long recvPerSec = recv2 - recv1;
             long sentPerSec = sent2 - sent1;
 
+            recvAllSecs += recvPerSec;
+            sendAllSecs += sentPerSec;
+            secs++;
+            
+            MUplText.Text = FormatBytes(sendAllSecs/secs);
+            MDwlText.Text = FormatBytes(recvAllSecs/secs);
+            Time.Text = TimeSpan.FromSeconds(secs).ToString(@"hh\:mm\:ss");
+            
             UplText.Text = FormatBytes(sentPerSec) + "\\s";
             DwlText.Text = FormatBytes(recvPerSec) + "\\s";
             
