@@ -17,7 +17,6 @@
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal" Spacing="5">
                         <materialIcons:MaterialIcon Kind="Home"/>
-                        <TextBlock Text="Основная" FontWeight="Bold"/>
                     </StackPanel>
                 </TabItem.Header>
 
@@ -65,25 +64,30 @@
                         </StackPanel>
 
                         <ToolTip.Tip>
-                            <StackPanel Margin="10">
-                                <TextBlock FontSize="16" FontWeight="Bold" Padding="3">Средняя скорость</TextBlock>
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <materialIcons:MaterialIcon Kind="ClockTimeEight" Foreground="Orange"/>
-                                    <TextBlock VerticalAlignment="Center" Name="Time">0</TextBlock>
+                            <Border>
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/> <!-- масштаб 1.5x -->
+                                </Border.RenderTransform>
+
+                                <StackPanel Margin="5">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <materialIcons:MaterialIcon Kind="ClockTimeEight" Foreground="Orange"/>
+                                        <TextBlock VerticalAlignment="Center" Name="Time">Время работы...</TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <materialIcons:MaterialIcon Kind="Upload" Foreground="Orange"/>
+                                        <TextBlock VerticalAlignment="Center" Name="MUplText">Отправка</TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <materialIcons:MaterialIcon Kind="Download" Foreground="Green"/>
+                                        <TextBlock VerticalAlignment="Center" Name="MDwlText">Загрузка</TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <materialIcons:MaterialIcon Kind="AlertCircle" Foreground="Red"/>
+                                        <TextBlock VerticalAlignment="Center" Name="ErrPckText">Пакеты с ошибкой</TextBlock>
+                                    </StackPanel>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <materialIcons:MaterialIcon Kind="Upload" Foreground="Orange"/>
-                                    <TextBlock VerticalAlignment="Center" Name="MUplText">10Mb/s</TextBlock>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <materialIcons:MaterialIcon Kind="Download" Foreground="Green"/>
-                                    <TextBlock VerticalAlignment="Center" Name="MDwlText">10Mb/s</TextBlock>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <materialIcons:MaterialIcon Kind="AlertCircle" Foreground="Red"/>
-                                    <TextBlock VerticalAlignment="Center" Name="ErrPckText">10Mb/s</TextBlock>
-                                </StackPanel>
-                            </StackPanel>
+                            </Border>
                         </ToolTip.Tip>
                     </Button>
 
@@ -126,6 +130,80 @@
                     <StackPanel Orientation="Horizontal" Spacing="5">
                         <materialIcons:MaterialIcon Kind="Settings"/>
                         <TextBlock Text="Настройки"  FontWeight="Bold"/>
+                    </StackPanel>
+                </TabItem.Header>
+                
+                <ScrollViewer>
+        <StackPanel Margin="20" Spacing="20" HorizontalAlignment="Left">
+            <!-- 🔹 Группа 1: Общие настройки -->
+            <StackPanel Spacing="10">
+                <TextBlock Text="Общие настройки"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="0,0,0,10" />
+
+                <!-- Текстовая настройка -->
+                <Border Padding="10" CornerRadius="8">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Имя пользователя" FontWeight="Bold" />
+                        <TextBlock Text="Отображается в заголовке окна и других местах." FontSize="12" Foreground="Gray" />
+                        <TextBox Width="250" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Числовая настройка -->
+                <Border Padding="10" CornerRadius="8">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Максимальное количество элементов" FontWeight="Bold" />
+                        <TextBlock Text="Определяет, сколько записей будет загружено одновременно." FontSize="12" Foreground="Gray" />
+                        <NumericUpDown Minimum="1" Maximum="1000" Width="150" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- 🔹 Группа 2: Внешний вид -->
+            <StackPanel Spacing="10">
+                <TextBlock Text="Внешний вид"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="0,10,0,10" />
+
+                <!-- Переключатель -->
+                <Border Padding="10" CornerRadius="8">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Тёмная тема" FontWeight="Bold" />
+                        <TextBlock Text="Включает или выключает тёмный режим интерфейса." FontSize="12" Foreground="Gray" />
+                        <ToggleSwitch/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Выпадающий список -->
+                <Border Padding="10" CornerRadius="8">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Язык интерфейса" FontWeight="Bold" />
+                        <TextBlock Text="Выберите язык приложения." FontSize="12" Foreground="Gray" />
+                        <ComboBox Width="200">
+                            <ComboBoxItem>Русский</ComboBoxItem>
+                            <ComboBoxItem>English</ComboBoxItem>
+                            <ComboBoxItem>Deutsch</ComboBoxItem>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Кнопка сохранения -->
+            <Button Content="💾 Сохранить настройки"
+                    Width="200"
+                    HorizontalAlignment="Right"/>
+        </StackPanel>
+    </ScrollViewer>
+            </TabItem>
+            
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <materialIcons:MaterialIcon Kind="Edit"/>
+                        <TextBlock Text="Конфиг"  FontWeight="Bold"/>
                     </StackPanel>
                 </TabItem.Header>
             </TabItem>

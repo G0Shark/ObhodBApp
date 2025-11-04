@@ -137,7 +137,7 @@ public partial class MainWindow : Window
             if (info != null)
             {
                 string flagEmoji = CountryCodeToEmoji(info.cc);
-                IpInfo.Text = $"{flagEmoji} Ваш IP: {info.ip} {info.cc}";
+                IpInfo.Text = $"Ваш IP: {info.ip} {info.cc}";
             }
         }
         catch (Exception ex)
