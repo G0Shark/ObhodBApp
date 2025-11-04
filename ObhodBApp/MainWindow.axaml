@@ -5,8 +5,8 @@
         xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
         xmlns:skiaSharpView="clr-namespace:LiveChartsCore.SkiaSharpView;assembly=LiveChartsCore.SkiaSharpView"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="900"
-        Height="900"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="950"
+        Height="950"
         Width="600"
         x:Class="ObhodBApp.MainWindow"
         Title="ObhodBApp">
@@ -70,6 +70,7 @@
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="300"></RowDefinition>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             
             <DropDownButton Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" CornerRadius="100" FontSize="30" Padding="10" FontWeight="Bold" Margin="20" Content=" Выберите профиль NGPN">
@@ -128,6 +129,10 @@
                     <skiaSharpView:Axis IsVisible="True" />
                 </lvc:CartesianChart.YAxes>
             </lvc:CartesianChart>
+            <ScrollViewer Grid.Row="6" VerticalScrollBarVisibility="Auto" CornerRadius="100"
+                          HorizontalScrollBarVisibility="Auto" Height="90">
+                <TextBlock Name="ConsoleTextBlock" FontFamily="Consolas" TextWrapping="Wrap" Background="Black"/>
+            </ScrollViewer>
         </Grid>
     </DockPanel>
 </Window>

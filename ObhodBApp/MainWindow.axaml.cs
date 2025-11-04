@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -35,9 +36,13 @@ public partial class MainWindow : Window
     private long recvAllSecs = 0;
     private long sendAllSecs = 0;
     private int secs = 0;
+    
+    private ClashController controller;
     public MainWindow()
     {
         InitializeComponent();
+        controller = new ClashController(this);
+        
         _ = testbytes();
         
         Chart.YAxes = new Axis[]
@@ -47,11 +52,14 @@ public partial class MainWindow : Window
                 Labeler = value => FormatBytes((long)value)
             }
         };
+        controller.AddConsoleLine("счёт байтовdddd", Colors.Yellow);
     }
     private async Task testbytes()
     {
         while (true)
         {
+            controller.AddConsoleLine("счёт байтов", Colors.Yellow);
+            
             var stats1 = adapter.GetIPv4Statistics();
             long recv1 = stats1.BytesReceived;
             long sent1 = stats1.BytesSent;

@@ -21,4 +21,13 @@
         <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc6.1" />
         <PackageReference Include="Material.Icons.Avalonia" Version="3.0.0-preview3.1" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Update="clash\clash.exe">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="clash\config.yaml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 </Project>
