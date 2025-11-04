@@ -30,4 +30,9 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="icon.ico" />
+      <AvaloniaResource Include="icon.ico" />
+    </ItemGroup>
 </Project>

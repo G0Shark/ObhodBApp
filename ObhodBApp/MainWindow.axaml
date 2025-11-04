@@ -6,6 +6,7 @@
         xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
         xmlns:skiaSharpView="clr-namespace:LiveChartsCore.SkiaSharpView;assembly=LiveChartsCore.SkiaSharpView"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="950"
+        Icon="avares://ObhodBApp/icon.ico"
         Height="950"
         Width="600"
         x:Class="ObhodBApp.MainWindow"
