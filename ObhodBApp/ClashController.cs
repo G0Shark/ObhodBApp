@@ -23,8 +23,6 @@ public class ClashController
         this.window = window;
 
         mainDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-
-        FormatLogLine("time=\"2025-11-04T16:07:17.832319100+03:00\" level=info msg=\"[TCP] 198.18.0.1:56792(EpicGamesLauncher.exe) --> datarouter.ol.epicgames.com:443 match Match using DIRECT\"");
     }
     
     public void Start()
