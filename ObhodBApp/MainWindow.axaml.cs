@@ -1,16 +1,21 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Styling;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -54,6 +59,9 @@ public partial class MainWindow : Window
                 Labeler = value => FormatBytes((long)value)
             }
         };
+
+        Editor.Text =
+            File.ReadAllText($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!}\\clash\\config.yaml");
     }
     private async Task MainUpdateTask()
     {
@@ -169,7 +177,36 @@ public partial class MainWindow : Window
     
     public void OnAppExit()
     {
-        controller.clash.Kill(true);
+        controller.Stop();
+    }
+
+    private void ClashConfigSave(object? sender, RoutedEventArgs e)
+    {
+        string cfgPath = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!}\\clash\\config.yaml";
+        string reserve =
+            File.ReadAllText(cfgPath);
+
+        File.WriteAllText(cfgPath, Editor.Text);
+        
+        if (!controller.TryConfig())
+        {
+            File.WriteAllText(cfgPath, reserve);
+            CfgWait.Animation = MaterialIconAnimation.FadeInOut;
+            CfgWait.Kind = MaterialIconKind.Error;
+            return;
+        }
+        
+        CfgWait.Animation = MaterialIconAnimation.FadeInOut;
+        CfgWait.Kind = MaterialIconKind.Success;
+        return;
+    }
+
+    private void ConfigChanged(object? sender, EventArgs e)
+    {
+        if (CfgWait.Animation != MaterialIconAnimation.Spin)
+            CfgWait.Animation = MaterialIconAnimation.Spin;
+        if (CfgWait.Kind != MaterialIconKind.CogClockwise)
+            CfgWait.Kind = MaterialIconKind.CogClockwise;
     }
 }
 

@@ -165,4 +165,32 @@ public class ClashController
             window.ConsoleTextBlock.LayoutUpdated += OnLayoutUpdated;
         }
     }
+
+    public bool TryConfig()
+    {
+        ProcessStartInfo clashsi = new ProcessStartInfo
+        {
+            FileName = $"{Path.GetFullPath($"{mainDir}\\clash\\clash.exe")}",
+            Arguments = $"-d {Path.GetFullPath($"{mainDir}\\clash")} -t",
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        
+        Process testCfg = new Process
+        {
+            StartInfo = clashsi,
+            EnableRaisingEvents = true
+        };
+        
+        testCfg.Start();
+        testCfg.WaitForExit();
+
+        if (testCfg.StandardOutput.ReadToEnd().Contains("successful") ||
+            testCfg.StandardError.ReadToEnd().Contains("successful"))
+            return true;
+        
+        return false;
+    }
 }
