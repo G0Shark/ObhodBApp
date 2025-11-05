@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -20,7 +21,7 @@ namespace ObhodBApp;
 
 public partial class MainWindow : Window
 {
-    private bool isEnable;
+    public bool isEnable;
     NetworkInterface adapter = NetworkInterface.GetAllNetworkInterfaces()
         .FirstOrDefault(ni => ni.Name == "Meta")!;
 
@@ -92,8 +93,7 @@ public partial class MainWindow : Window
             
             line1Values.Add(recvPerSec);
             line2Values.Add(sentPerSec);
-
-            // Ограничиваем длину графика до 20 точек
+            
             if (line1Values.Count > 20) line1Values.RemoveAt(0);
             if (line2Values.Count > 20) line2Values.RemoveAt(0);
             
@@ -101,12 +101,10 @@ public partial class MainWindow : Window
             {
                 new LineSeries<double> { Fill = new SolidColorPaint(new SKColor(SKColors.Green.Red, SKColors.Green.Green, SKColors.Green.Blue, 60)), Stroke = new SolidColorPaint(SKColors.Green) { StrokeThickness = 4 }, Values = line1Values, GeometryFill = null, GeometryStroke = null, AnimationsSpeed = TimeSpan.Zero, YToolTipLabelFormatter = point =>
                 {
-                    // point.PrimaryValue содержит значение Y
                     return FormatBytes((long)point.Model);
                 } },
                 new LineSeries<double> { Fill = new SolidColorPaint(new SKColor(SKColors.Orange.Red, SKColors.Orange.Green, SKColors.Orange.Blue, 60)), Stroke = new SolidColorPaint(SKColors.Orange) { StrokeThickness = 4 }, Values = line2Values, GeometryFill = null, GeometryStroke = null, AnimationsSpeed = TimeSpan.Zero, YToolTipLabelFormatter = point =>
                 {
-                    // point.PrimaryValue содержит значение Y
                     return FormatBytes((long)point.Model);
                 } },
             };
@@ -115,7 +113,6 @@ public partial class MainWindow : Window
     
     static string FormatBytes(long bytes)
     {
-        // Удобное форматирование
         string[] sizes = { "B", "KB", "MB", "GB" };
         double len = bytes;
         int order = 0;
@@ -129,8 +126,6 @@ public partial class MainWindow : Window
     
     private async void MainBtn_OnClick(object? sender, RoutedEventArgs e)
     {
-        CheckIpAdress();
-        
         if (!isEnable)
         {
             MainBtn.IsEnabled = false;
@@ -144,11 +139,13 @@ public partial class MainWindow : Window
         {
             MainBtn.IsEnabled = false;
             MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
-            controller.clash.Kill(true);
+            controller.Stop();
             MainBtnIcon.Animation = MaterialIconAnimation.None;
             isEnable = false;
             MainBtn.IsEnabled = true;
         }
+        
+        CheckIpAdress();
     }
     
     private async Task CheckIpAdress()
@@ -166,8 +163,13 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            IpInfo.Text = "❌ Ошибка: " + ex.Message;
+            IpInfo.Text = "Ошибка: " + ex.Message;
         }
+    }
+    
+    public void OnAppExit()
+    {
+        controller.clash.Kill(true);
     }
 }
 

@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Material.Icons;
 
 namespace ObhodBApp;
 
@@ -53,6 +54,10 @@ public class ClashController
                 AddConsoleLine("[ ", Colors.White);
                 AddConsoleLine("EXIT", Colors.OrangeRed);
                 AddConsoleLine(" ] " + "Программа завершила работу с кодом " + clash.ExitCode + "\n", Colors.White);
+                
+                window.MainBtnIcon.Foreground = Brushes.Orange;
+                window.MainBtnIcon.Animation = MaterialIconAnimation.None;
+                window.isEnable = false;
             });
         };
         
@@ -61,6 +66,17 @@ public class ClashController
         clash.BeginErrorReadLine();
     }
 
+    public void Stop()
+    {
+        if (clash != null)
+        {
+            if (clash.HasExited) return;
+            clash.Close();
+            clash.WaitForExit();
+            clash = null;
+        }
+    }
+    
     private void FormatAndOut(string logLine)
     {
         var result = ParseDefaultClashLogs(logLine);
@@ -78,11 +94,7 @@ public class ClashController
 
     void FormatLogLine(string line)
     {
-        var msgMatch = Regex.Match(line, @"msg=""(?<msg>[^""]+)""");
-        if (!msgMatch.Success) return;
-        var msg = msgMatch.Groups["msg"].Value;
-
-        var m = Regex.Match(msg, @"\[(?<proto>TCP|UDP)\]\s+(?<src>[^()]+)\((?<prog>[^)]+)\)\s+-->\s+(?<dst>\S+)\s+match\s+(?<rest>.+)");
+        var m = Regex.Match(line, @"\[(?<proto>TCP|UDP)\]\s+(?<src>[^()]+)\((?<prog>[^)]+)\)\s+-->\s+(?<dst>\S+)\s+match\s+(?<rest>.+)");
         if (!m.Success) return;
 
         string protocol = m.Groups["proto"].Value;
