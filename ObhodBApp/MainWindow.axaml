@@ -6,6 +6,7 @@
         xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
         xmlns:skiaSharpView="clr-namespace:LiveChartsCore.SkiaSharpView;assembly=LiveChartsCore.SkiaSharpView"
         xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+        xmlns:views="clr-namespace:ObhodBApp.Pages"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="900"
         Icon="avares://ObhodBApp/icon.ico"
         Height="900"
@@ -134,105 +135,7 @@
                     </StackPanel>
                 </TabItem.Header>
 
-                <ScrollViewer>
-                    <StackPanel Margin="20" Spacing="25">
-
-                        <!-- 🔹 Группа 1: Общие настройки -->
-                        <StackPanel Spacing="15">
-                            <TextBlock Text="Интерфейс"
-                                       FontSize="22"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource ThemeForegroundBrush}" />
-
-                            <!-- Максимальное количество элементов -->
-                            <Border Background="{DynamicResource ThemeBackgroundBrush}"
-                                    Padding="15"
-                                    CornerRadius="10"
-                                    BoxShadow="0 2 6 0 #00000033">
-                                <StackPanel Spacing="6" HorizontalAlignment="Left">
-                                    <TextBlock Text="Время обновления (мс)" FontWeight="Bold"/>
-                                    <TextBlock Text="Определяет, раз в какой период программа будет обновлять граф, средние значения и скорость"
-                                               FontSize="12" Foreground="Gray"/>
-                                    <NumericUpDown Minimum="1"
-                                                   Maximum="100000"
-                                                   Width="300"
-                                                   FormatString="0"
-                                                   CornerRadius="6"
-                                                   HorizontalAlignment="Left"/>
-                                </StackPanel>
-                            </Border>
-                            
-                            <!-- Имя пользователя -->
-                            <Border Background="{DynamicResource ThemeBackgroundBrush}"
-                                    Padding="15"
-                                    CornerRadius="10"
-                                    BoxShadow="0 2 6 0 #00000033">
-                                <StackPanel Spacing="6" HorizontalAlignment="Left">
-                                    <TextBlock Text="Имя пользователя" FontWeight="Bold"/>
-                                    <TextBlock Text="Отображается в заголовке окна и других местах."
-                                               FontSize="12" Foreground="Gray"/>
-                                    <TextBox Width="300"
-                                             Watermark="Введите имя..."
-                                             CornerRadius="6"
-                                             HorizontalAlignment="Left"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-
-                        <!-- 🔹 Группа 2: Внешний вид -->
-                        <StackPanel Spacing="15">
-                            <TextBlock Text="Внешний вид"
-                                       FontSize="22"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource ThemeForegroundBrush}"
-                                       Margin="0,10,0,0"/>
-
-                            <!-- Тёмная тема -->
-                            <Border Background="{DynamicResource ThemeBackgroundBrush}"
-                                    Padding="15"
-                                    CornerRadius="10"
-                                    BoxShadow="0 2 6 0 #00000033">
-                                <StackPanel Spacing="6" HorizontalAlignment="Left">
-                                    <TextBlock Text="Тёмная тема" FontWeight="Bold"/>
-                                    <TextBlock Text="Включает или выключает тёмный режим интерфейса."
-                                               FontSize="12" Foreground="Gray"/>
-                                    <ToggleSwitch HorizontalAlignment="Left"/>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Язык интерфейса -->
-                            <Border Background="{DynamicResource ThemeBackgroundBrush}"
-                                    Padding="15"
-                                    CornerRadius="10"
-                                    BoxShadow="0 2 6 0 #00000033">
-                                <StackPanel Spacing="6" HorizontalAlignment="Left">
-                                    <TextBlock Text="Язык интерфейса" FontWeight="Bold"/>
-                                    <TextBlock Text="Выберите язык приложения."
-                                               FontSize="12" Foreground="Gray"/>
-                                    <ComboBox Width="200"
-                                              CornerRadius="6"
-                                              HorizontalAlignment="Left">
-                                        <ComboBoxItem>Русский</ComboBoxItem>
-                                        <ComboBoxItem>English</ComboBoxItem>
-                                        <ComboBoxItem>Deutsch</ComboBoxItem>
-                                    </ComboBox>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
-
-                        <!-- 🔹 Кнопка сохранения -->
-                        <StackPanel HorizontalAlignment="Right" Margin="0,10,0,0">
-                            <Button Content="💾 Сохранить настройки"
-                                    Width="220"
-                                    Padding="10,5"
-                                    CornerRadius="8"
-                                    Background="{DynamicResource AccentBrush}"
-                                    Foreground="White"
-                                    FontWeight="Bold"
-                                    HorizontalAlignment="Right"/>
-                        </StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
+                <views:Settings/>
             </TabItem>
             
             <TabItem>

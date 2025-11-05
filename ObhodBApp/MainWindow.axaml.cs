@@ -20,7 +20,7 @@ namespace ObhodBApp;
 
 public partial class MainWindow : Window
 {
-    private bool iss = false;
+    private bool isEnable;
     NetworkInterface adapter = NetworkInterface.GetAllNetworkInterfaces()
         .FirstOrDefault(ni => ni.Name == "Meta")!;
 
@@ -38,12 +38,13 @@ public partial class MainWindow : Window
     private int secs = 0;
     
     private ClashController controller;
+    private Task updater;
     public MainWindow()
     {
         InitializeComponent();
         controller = new ClashController(this);
         
-        _ = testbytes();
+        updater = MainUpdateTask();
         
         Chart.YAxes = new Axis[]
         {
@@ -53,7 +54,7 @@ public partial class MainWindow : Window
             }
         };
     }
-    private async Task testbytes()
+    private async Task MainUpdateTask()
     {
         while (true)
         {
@@ -128,6 +129,30 @@ public partial class MainWindow : Window
     
     private async void MainBtn_OnClick(object? sender, RoutedEventArgs e)
     {
+        CheckIpAdress();
+        
+        if (!isEnable)
+        {
+            MainBtn.IsEnabled = false;
+            MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
+            controller.Start();
+            MainBtnIcon.Animation = MaterialIconAnimation.Spin;
+            isEnable = true;
+            MainBtn.IsEnabled = true;
+        }
+        else
+        {
+            MainBtn.IsEnabled = false;
+            MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
+            controller.clash.Kill(true);
+            MainBtnIcon.Animation = MaterialIconAnimation.None;
+            isEnable = false;
+            MainBtn.IsEnabled = true;
+        }
+    }
+    
+    private async Task CheckIpAdress()
+    {
         try
         {
             using var client = new HttpClient();
@@ -136,7 +161,6 @@ public partial class MainWindow : Window
 
             if (info != null)
             {
-                string flagEmoji = CountryCodeToEmoji(info.cc);
                 IpInfo.Text = $"Ваш IP: {info.ip} {info.cc}";
             }
         }
@@ -144,42 +168,6 @@ public partial class MainWindow : Window
         {
             IpInfo.Text = "❌ Ошибка: " + ex.Message;
         }
-        
-        if (!iss)
-        {
-            MainBtn.IsEnabled = false;
-            MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
-            nigga().Wait();
-            MainBtnIcon.Animation = MaterialIconAnimation.Spin;
-            iss = true;
-            MainBtn.IsEnabled = true;
-        }
-        else
-        {
-            MainBtn.IsEnabled = false;
-            MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
-            nigga().Wait();
-            MainBtnIcon.Animation = MaterialIconAnimation.None;
-            iss = false;
-            MainBtn.IsEnabled = true;
-        }
-    }
-
-    private static string CountryCodeToEmoji(string countryCode)
-    {
-        if (string.IsNullOrEmpty(countryCode))
-            return "🏳️";
-
-        countryCode = countryCode.ToUpper();
-        int offset = 0x1F1E6 - 'A';
-        char first = (char)(countryCode[0] + offset);
-        char second = (char)(countryCode[1] + offset);
-        return $"{first}{second}";
-    }
-    
-    private async Task nigga()
-    {
-        Thread.Sleep(1);
     }
 }
 

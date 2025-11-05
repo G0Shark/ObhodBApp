@@ -30,8 +30,8 @@ public class ClashController
     {
         ProcessStartInfo clashsi = new ProcessStartInfo
         {
-            FileName = $"{Path.GetFullPath($"{mainDir}clash/clash.exe")}",
-            Arguments = $"-d {Path.GetFullPath($"{mainDir}clash")}",
+            FileName = $"{Path.GetFullPath($"{mainDir}\\clash\\clash.exe")}",
+            Arguments = $"-d {Path.GetFullPath($"{mainDir}\\clash")}",
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = true,
@@ -46,6 +46,19 @@ public class ClashController
         
         clash.OutputDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data); }); };
         clash.ErrorDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data); }); };
+        clash.Exited += async (sender, args) =>
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                AddConsoleLine("[ ", Colors.White);
+                AddConsoleLine("EXIT", Colors.OrangeRed);
+                AddConsoleLine(" ] " + "Программа завершила работу с кодом " + clash.ExitCode + "\n", Colors.White);
+            });
+        };
+        
+        clash.Start();
+        clash.BeginOutputReadLine();
+        clash.BeginErrorReadLine();
     }
 
     private void FormatAndOut(string logLine)
@@ -65,28 +78,33 @@ public class ClashController
 
     void FormatLogLine(string line)
     {
-        // Парсим лог
-        string pattern = @"\[(TCP|UDP)\] \d+\.\d+\.\d+\.\d+:\d+\(([^)]+)\) --> ([^ ]+) match (\w+)\(([^)]+)\)(?: using (\w+))?(?:\[(.+)\])?";
-        var match = Regex.Match(line, pattern);
+        var msgMatch = Regex.Match(line, @"msg=""(?<msg>[^""]+)""");
+        if (!msgMatch.Success) return;
+        var msg = msgMatch.Groups["msg"].Value;
 
-        if (!match.Success) ; //TODO: Логи создать для указания проблем
+        var m = Regex.Match(msg, @"\[(?<proto>TCP|UDP)\]\s+(?<src>[^()]+)\((?<prog>[^)]+)\)\s+-->\s+(?<dst>\S+)\s+match\s+(?<rest>.+)");
+        if (!m.Success) return;
 
-        string protocol = match.Groups[1].Value;
-        string program = match.Groups[2].Value;
-        string destination = match.Groups[3].Value;
-        string ruleType = match.Groups[4].Value;       // ProcessName, DomainKeyword, DomainSuffix и т.д.
-        string ruleValue = match.Groups[5].Value;      // имя процесса или домен
-        string route = match.Groups[6].Success ? match.Groups[6].Value : "DIRECT"; // маршрут
-        string extra = match.Groups[7].Success ? match.Groups[7].Value : "";
+        string protocol = m.Groups["proto"].Value;
+        string program = m.Groups["prog"].Value;
+        string destination = m.Groups["dst"].Value;
+        string rest = m.Groups["rest"].Value;
 
-        string ruleInfo = ruleType;
-        if (!string.IsNullOrEmpty(extra))
-            ruleInfo += $"\\{extra}";
+        string route = rest.Contains("ObhodBlokirovok") ? "NGPN" : "DIRECT";
+        string ruleInfo = "";
 
+        var ruleMatch = Regex.Match(rest, @"(?<rule>\w+\([^\)]+\))");
+        if (ruleMatch.Success) ruleInfo = ruleMatch.Groups["rule"].Value;
+
+        var filterMatch = Regex.Match(rest, @"ObhodBlokirovok\[(?<f>[^\]]+)\]");
+        if (filterMatch.Success)
+            ruleInfo += $" [{filterMatch.Groups["f"].Value}]";
+
+        // === вывод ===
         AddConsoleLine("[ ", Colors.White);
-        if (protocol == "TCP") AddConsoleLine("TCP", Colors.Cyan); else AddConsoleLine("UDP", Colors.DarkCyan);
+        AddConsoleLine(protocol, protocol == "TCP" ? Colors.Cyan : Colors.DarkCyan);
         AddConsoleLine(" : ", Colors.White);
-        if (route == "DIRECT") AddConsoleLine("DIRECT", Colors.Orange); else AddConsoleLine("NGPN", Colors.Green);
+        AddConsoleLine(route == "DIRECT" ? "DIRECT" : "NGPN", route == "DIRECT" ? Colors.Orange : Colors.Green);
         AddConsoleLine(" ] " + program + " --> " + destination, Colors.White);
         AddConsoleLine($" ({ruleInfo})\n", Colors.Gray);
     }
