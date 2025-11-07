@@ -39,10 +39,12 @@
                         <materialIcons:MaterialIcon Name="MainBtnIcon" Padding="20" Kind="Web" IconSize="200" />
                     </Button>
 
-                    <TextBlock Grid.Row="2" FontSize="20" FontWeight="Bold"
-                               Name="IpInfo" Text="Ваш IP: ..."
-                               HorizontalAlignment="Center"/>
-
+                    <StackPanel Grid.Row="2" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <materialIcons:MaterialIcon Kind="InternetProtocol" Name="IpIcon"/>
+                        <TextBlock FontSize="20" FontWeight="Bold"
+                                   Name="IpInfo" Text="Ваш IP: ..."/>
+                    </StackPanel>
+                    
                     <Button ToolTip.Placement="Bottom" Grid.Row="3" CornerRadius="100"
                             HorizontalAlignment="Center" Margin="10" Padding="10"
                             FontSize="20" FontWeight="Bold">
@@ -55,10 +57,6 @@
 
                         <ToolTip.Tip>
                             <StackPanel Margin="5">
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <materialIcons:MaterialIcon Kind="ClockTimeEight" Foreground="Orange"/>
-                                    <TextBlock VerticalAlignment="Center" Name="Time">Время работы...</TextBlock>
-                                </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                     <materialIcons:MaterialIcon Kind="Upload" Foreground="Orange"/>
                                     <TextBlock VerticalAlignment="Center" Name="MUplText">Отправка</TextBlock>
@@ -75,13 +73,22 @@
                         </ToolTip.Tip>
                     </Button>
 
-                    <Button Grid.Row="4" CornerRadius="100" HorizontalAlignment="Center"
-                            Margin="10" Padding="10" FontSize="20" FontWeight="Bold">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <materialIcons:MaterialIcon Kind="TrayDownload"/>
-                            <TextBlock VerticalAlignment="Center" Name="TrafficText">10Mb/s</TextBlock>
-                        </StackPanel>
-                    </Button>
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="-10" HorizontalAlignment="Center">
+                        <Button CornerRadius="100" HorizontalAlignment="Center"
+                                Margin="10" Padding="10" FontSize="20" FontWeight="Bold">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="TrayDownload"/>
+                                <TextBlock VerticalAlignment="Center" Name="TrafficText">0B</TextBlock>
+                            </StackPanel>
+                        </Button>
+                        <Button CornerRadius="100" HorizontalAlignment="Center"
+                                Margin="10" Padding="10" FontSize="20" FontWeight="Bold">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="ClockTimeEight" Name="TimeIcon"/>
+                                <TextBlock VerticalAlignment="Center" Name="Time">00:00:00</TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
 
                     <lvc:CartesianChart Grid.Row="5" Name="Chart" Height="300">
                         <lvc:CartesianChart.XAxes>

@@ -72,6 +72,8 @@ public partial class MainWindow : Window
 
         Editor.Text =
             File.ReadAllText($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!}\\clash\\config.yaml");
+
+        CheckIpAdress();
     }
     private async Task MainUpdateTask()
     {
@@ -111,9 +113,12 @@ public partial class MainWindow : Window
             
             line1Values.Add(recvPerSec);
             line2Values.Add(sentPerSec);
+
+            while (line1Values.Count > _appSettings.updatesCount)
+                line1Values.RemoveAt(0);
             
-            if (line1Values.Count > _appSettings.updatesCount) line1Values.RemoveAt(0);
-            if (line2Values.Count > _appSettings.updatesCount) line2Values.RemoveAt(0);
+            while (line2Values.Count > _appSettings.updatesCount)
+                line2Values.RemoveAt(0);
             
             Chart.Series = new ISeries[]
             {
@@ -149,6 +154,10 @@ public partial class MainWindow : Window
             MainBtn.IsEnabled = false;
             MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
             controller.Start();
+            secs = 0;
+            recvAllSecs = 0;
+            sendAllSecs = 0;
+            TimeIcon.Animation = MaterialIconAnimation.None;
             MainBtnIcon.Animation = MaterialIconAnimation.Spin;
             isEnable = true;
             MainBtn.IsEnabled = true;
@@ -158,6 +167,7 @@ public partial class MainWindow : Window
             MainBtn.IsEnabled = false;
             MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
             controller.Stop();
+            TimeIcon.Animation = MaterialIconAnimation.FadeInOut;
             MainBtnIcon.Animation = MaterialIconAnimation.None;
             isEnable = false;
             MainBtn.IsEnabled = true;
@@ -176,13 +186,36 @@ public partial class MainWindow : Window
 
             if (info != null)
             {
-                IpInfo.Text = $"Ваш IP: {info.ip} {info.cc}";
+                IpInfo.ClearValue(TextBlock.ForegroundProperty);
+                IpIcon.ClearValue(TextBlock.ForegroundProperty);
+                IpInfo.Text = $"Ваш IP: {info.ip} {GetFlagEmoji(info.cc)}";
+                IpIcon.Animation = MaterialIconAnimation.None;
             }
         }
         catch (Exception ex)
         {
+            IpInfo.Foreground = Brushes.Red;
             IpInfo.Text = ex.Message;
+            IpIcon.Foreground = Brushes.Red;
+            IpIcon.Animation = MaterialIconAnimation.FadeInOut;
         }
+    }
+    
+    public static string GetFlagEmoji(string countryCode)
+    {
+        if (string.IsNullOrEmpty(countryCode) || countryCode.Length != 2)
+            throw new ArgumentException("Код страны должен состоять из двух букв (например, 'RU').");
+        
+        countryCode = countryCode.ToUpperInvariant();
+        
+        int offset = 0x1F1E6 - 'A';
+
+        string flag = string.Concat(
+            char.ConvertFromUtf32(countryCode[0] + offset),
+            char.ConvertFromUtf32(countryCode[1] + offset)
+        );
+
+        return flag;
     }
     
     public void OnAppExit()
