@@ -17,7 +17,6 @@ public partial class UpdateMsg : Window
 {
     public UpdateMsg()
     {
-        //TODO: Заменить ссылки
         InitializeComponent();
         
         try
@@ -30,7 +29,7 @@ public partial class UpdateMsg : Window
 
             HttpWebRequest request =
                 (HttpWebRequest)WebRequest.Create(
-                    "https://raw.githubusercontent.com/G0Shark/ObhodBlokirovok/master/update.json");
+                    "https://raw.githubusercontent.com/G0Shark/ObhodBApp/master/version.json");
             request.Method = "GET";
 
             string content = "";

@@ -27,14 +27,14 @@ public static class Logger
         Write(" ] " + message + "\n", Colors.White);
     }
 
-    public static void Log(string text, string logtype = "log.txt")
+    public static void Log(string text, string logtype = "log")
     {
         string mainDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
         
         if (!Directory.Exists($"{mainDir}\\logs"))
             Directory.CreateDirectory($"{mainDir}\\logs");
         
-        File.AppendAllText($"{mainDir}\\logs\\{logtype}.txt", $"{DateTime.Now} | {text}");
+        File.AppendAllText($"{mainDir}\\logs\\{logtype}.txt", $"{DateTime.Now} | {text}\n");
     }
     
     private static void Write(string text, Color color)

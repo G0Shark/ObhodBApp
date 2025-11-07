@@ -43,4 +43,11 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </AvaloniaResource>
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Pages\UpdateMsg.axaml.cs">
+        <DependentUpon>UpdateMsg.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+    </ItemGroup>
 </Project>

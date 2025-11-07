@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="ObhodBApp.Pages.ErrorMiddleware"
+        Title="ErrorMiddleware">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="12" Margin="20">
+            <materialIcons:MaterialIcon Kind="Error" IconSize="40" Foreground="Red"/>
+            <TextBlock FontSize="50" FontWeight="Bold" Text="Ошибка" Foreground="Red"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="12">
+            <materialIcons:MaterialIcon Kind="Info"/>
+            <TextBlock FontSize="20" FontWeight="Bold" Text="Информация" Name="BaseDescription"/>
+        </StackPanel>
+        <StackPanel Grid.Row="2" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="12">
+            <materialIcons:MaterialIcon Kind="Console"/>
+            <TextBlock FontSize="20" FontWeight="Bold" Text="СтакТрейс" Name="FullInfo"/>
+        </StackPanel>
+    </Grid>
+</Window>

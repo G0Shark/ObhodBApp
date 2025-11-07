@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -12,7 +13,9 @@ using Avalonia.Logging;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using Material.Icons;
+using ObhodBApp.Pages;
 
 namespace ObhodBApp;
 
@@ -39,6 +42,10 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        Dispatcher.UIThread.UnhandledException += OnUIThreadException;
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             string[] args = desktop.Args;
@@ -57,6 +64,31 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+    
+    
+    private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        var ex = (Exception)e.ExceptionObject;
+        Logger.Log(ex.ToString(), "error.txt");
+        ErrorMiddleware errM = new(ex);
+        errM.Show();
+    }
+
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        Logger.Log(e.Exception.ToString(), "error.txt");
+        ErrorMiddleware errM = new(e.Exception);
+        errM.Show();
+        e.SetObserved();
+    }
+
+    private void OnUIThreadException(object? sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        Logger.Log(e.Exception.ToString(), "error.txt");
+        ErrorMiddleware errM = new(e.Exception);
+        errM.Show();
+        e.Handled = true;
     }
 
     private void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
