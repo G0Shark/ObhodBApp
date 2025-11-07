@@ -46,9 +46,6 @@ public partial class App : Application
             desktop.Exit += OnExit;
 
             Logger.LogBlock = mainWindow.ConsoleTextBlock; //оч важная строчка
-            
-            UpdateMsg updater = new();
-            updater.Show();
 
             var menu = new NativeMenu();
             

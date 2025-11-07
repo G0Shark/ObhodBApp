@@ -46,10 +46,19 @@ public partial class MainWindow : Window
     
     private ClashController controller;
     private Task updater;
+    public AppSettings _appSettings;
     public MainWindow()
     {
         InitializeComponent();
         controller = new ClashController(this);
+        
+        _appSettings = AppSettings.Load();
+
+        if (_appSettings.checkForUpdates)
+        {
+            var updateMsg = new UpdateMsg();
+            updateMsg.Show();
+        }
         
         updater = MainUpdateTask();
         
@@ -74,7 +83,7 @@ public partial class MainWindow : Window
             
             ErrPckText.Text = (stats1.IncomingPacketsWithErrors + stats1.OutgoingPacketsWithErrors).ToString();
             
-            await Task.Delay(1000);
+            await Task.Delay(_appSettings.updateInterval);
 
             var stats2 = adapter.GetIPv4Statistics();
             long recv2 = stats2.BytesReceived;
@@ -85,14 +94,14 @@ public partial class MainWindow : Window
 
             recvAllSecs += recvPerSec;
             sendAllSecs += sentPerSec;
-            secs++;
+            secs += _appSettings.updateInterval;
             
-            MUplText.Text = FormatBytes(sendAllSecs/secs);
-            MDwlText.Text = FormatBytes(recvAllSecs/secs);
-            Time.Text = TimeSpan.FromSeconds(secs).ToString(@"hh\:mm\:ss");
+            MUplText.Text = FormatBytes(sendAllSecs/(long)TimeSpan.FromMilliseconds(secs).TotalSeconds);
+            MDwlText.Text = FormatBytes(recvAllSecs/(long)TimeSpan.FromMilliseconds(secs).TotalSeconds);
+            Time.Text = TimeSpan.FromMilliseconds(secs).ToString(@"hh\:mm\:ss");
             
-            UplText.Text = FormatBytes(sentPerSec) + "\\s";
-            DwlText.Text = FormatBytes(recvPerSec) + "\\s";
+            UplText.Text = FormatBytes(sentPerSec);
+            DwlText.Text = FormatBytes(recvPerSec);
             
             long totalReceived = stats2.BytesReceived;
             long totalSent = stats2.BytesSent;
@@ -103,8 +112,8 @@ public partial class MainWindow : Window
             line1Values.Add(recvPerSec);
             line2Values.Add(sentPerSec);
             
-            if (line1Values.Count > 20) line1Values.RemoveAt(0);
-            if (line2Values.Count > 20) line2Values.RemoveAt(0);
+            if (line1Values.Count > _appSettings.updatesCount) line1Values.RemoveAt(0);
+            if (line2Values.Count > _appSettings.updatesCount) line2Values.RemoveAt(0);
             
             Chart.Series = new ISeries[]
             {
@@ -172,7 +181,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            IpInfo.Text = "Ошибка: " + ex.Message;
+            IpInfo.Text = ex.Message;
         }
     }
     

@@ -7,17 +7,19 @@ namespace ObhodBApp.Pages;
 
 public partial class Settings : UserControl
 {
-    public SettingsViewModel currentSettings { get; set; }
+    public AppSettings CurrentAppSettings { get; set; }
 
     public Settings()
     {
         InitializeComponent();
-        currentSettings = SettingsViewModel.Load();
-        DataContext = currentSettings;
+        CurrentAppSettings = AppSettings.Load();
+        DataContext = CurrentAppSettings;
     }
 
     private void Save(object? sender, RoutedEventArgs e)
     {
-        currentSettings.Save();
+        CurrentAppSettings.Save();
+        var window = VisualRoot as MainWindow;
+        window._appSettings = CurrentAppSettings;
     }
 }

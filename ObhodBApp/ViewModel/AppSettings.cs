@@ -9,11 +9,13 @@ public class Settings
     public int UpdateInterval { get; set; }
 }
 
-public class SettingsViewModel : ReactiveObject
+public class AppSettings : ReactiveObject
 {
     private const string SettingsFileName = "settings.json";
 
     public int updateInterval { get; set; } = 1000;
+    public bool checkForUpdates { get; set; } = true; 
+    public int updatesCount { get; set; } = 20;
 
     private static readonly string SettingsFilePath =
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
@@ -35,25 +37,25 @@ public class SettingsViewModel : ReactiveObject
         }
     }
 
-    public static SettingsViewModel Load()
+    public static AppSettings Load()
     {
         try
         {
             if (!File.Exists(SettingsFilePath))
             {
-                var defaultSettings = new SettingsViewModel();
+                var defaultSettings = new AppSettings();
                 defaultSettings.Save();
                 return defaultSettings;
             }
 
             string json = File.ReadAllText(SettingsFilePath);
-            var settings = JsonSerializer.Deserialize<SettingsViewModel>(json);
+            var settings = JsonSerializer.Deserialize<AppSettings>(json);
 
-            return settings ?? new SettingsViewModel();
+            return settings ?? new AppSettings();
         }
         catch
         {
-            return new SettingsViewModel();
+            return new AppSettings();
         }
     }
 }

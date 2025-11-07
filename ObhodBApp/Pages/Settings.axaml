@@ -3,19 +3,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ObhodBApp.Pages.Settings"
-             x:DataType="vm:SettingsViewModel">
+             x:DataType="vm:AppSettings">
     <ScrollViewer>
         <StackPanel Margin="20" Spacing="25">
-            <!-- 🔹 Группа 1: Общие настройки -->
             <StackPanel Spacing="15">
-                <TextBlock Text="Интерфейс"
+                <TextBlock Text="Настройки"
                            FontSize="22"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource ThemeForegroundBrush}" />
-
-                <!-- Максимальное количество элементов -->
+                
                 <Border Background="{DynamicResource ThemeBackgroundBrush}"
                         Padding="15"
                         CornerRadius="10"
@@ -31,9 +30,41 @@
                                        HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
+                
+                <Border Background="{DynamicResource ThemeBackgroundBrush}"
+                        Padding="15"
+                        CornerRadius="10"
+                        BoxShadow="0 2 6 0 #00000033">
+                    <StackPanel Spacing="6" HorizontalAlignment="Left">
+                        <TextBlock Text="Автообновления" FontWeight="Bold"/>
+                        <TextBlock Text="Предупреждать о наличии обновлений при запуске программы."
+                                   FontSize="12" Foreground="Gray"/>
+                        <ToggleSwitch IsChecked="{Binding checkForUpdates}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
+                
+                <Border Background="{DynamicResource ThemeBackgroundBrush}"
+                        Padding="15"
+                        CornerRadius="10"
+                        BoxShadow="0 2 6 0 #00000033">
+                    <StackPanel Spacing="6" HorizontalAlignment="Left">
+                        <TextBlock Text="Количество апдейтов" FontWeight="Bold"/>
+                        <TextBlock Text="Определяет, сколько точек будет в графе"
+                                   FontSize="12" Foreground="Gray"/>
+                        <NumericUpDown Minimum="5"
+                                       Maximum="1000"
+                                       Width="300"
+                                       Value="{Binding updateInterval, Mode=TwoWay}"
+                                       HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
-
-            <!-- 🔹 Кнопка сохранения -->
+            
+            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <materialIcons:MaterialIcon Kind="InformationSlabCircleOutline"/>
+                <TextBlock Foreground="Gray" FontWeight="Bold" FontSize="13" Text="ObhodBApp, сделанная G0Shark. Версия 0.0.0DEV."/>
+            </StackPanel>
+            
             <StackPanel HorizontalAlignment="Right" Margin="0,10,0,0">
                 <Button Content="💾 Сохранить настройки"
                         Width="220"

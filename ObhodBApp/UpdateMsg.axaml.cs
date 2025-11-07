@@ -17,6 +17,9 @@ public partial class UpdateMsg : Window
 {
     public UpdateMsg()
     {
+        //TODO: Заменить ссылки
+        InitializeComponent();
+        
         try
         {
             using HttpClient client = new HttpClient
@@ -51,14 +54,14 @@ public partial class UpdateMsg : Window
 
                 if (info == null) return;
 
-                var current = new Version(1, 0, 1);
+                var current = new Version(0, 0, 1);
                 var latest = Version.Parse(info.version);
 
                 if (latest > current)
                 {
                     Logger.WriteLog("UPDATE", "INFO", $"Доступно новое обновление", Colors.Aqua, Colors.Purple);
 
-                    tVersion.Text = latest.ToString();
+                    tVersion.Text = current + " ==> " + latest;
                     tComment.Text = info.comment; 
                 }
                 else
@@ -73,8 +76,6 @@ public partial class UpdateMsg : Window
             Logger.WriteLog("UPDATE", "ERROR", $"Ошибка", Colors.Red,
                 Colors.Purple);
         }
-        
-        InitializeComponent();
     }
 
     private void GetUpdate(object? sender, RoutedEventArgs e)
@@ -89,7 +90,10 @@ public partial class UpdateMsg : Window
 
     private void DontShowAgain(object? sender, RoutedEventArgs e)
     {
-        throw new NotImplementedException();
+        var s = AppSettings.Load();
+        s.checkForUpdates = false;
+        s.Save();
+        Close();
     }
 }
 
