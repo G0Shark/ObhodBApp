@@ -58,6 +58,32 @@
                                        HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
+                
+                <Border Background="{DynamicResource ThemeBackgroundBrush}"
+                        Padding="15"
+                        CornerRadius="10"
+                        BoxShadow="0 2 6 0 #00000033">
+                    <StackPanel Spacing="6" HorizontalAlignment="Left">
+                        <TextBlock Text="Не закрывать приложение" FontWeight="Bold"/>
+                        <TextBlock Text="Не закрывает приложение на нажатие 'x', вместо этого скрывает его в трей."
+                                   FontSize="12" Foreground="Gray"/>
+                        <ToggleSwitch IsChecked="{Binding goToTray}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
+                
+                <Border Background="{DynamicResource ThemeBackgroundBrush}"
+                        Padding="15"
+                        CornerRadius="10"
+                        BoxShadow="0 2 6 0 #00000033">
+                    <StackPanel Spacing="6" HorizontalAlignment="Left">
+                        <TextBlock Text="Автозапуск" FontWeight="Bold"/>
+                        <TextBlock Text="Автоматически запускает приложение от имени администратора."
+                                   FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="На Linux работает только при systemd."
+                                   FontSize="12" Foreground="Gray"/>
+                        <ToggleSwitch IsChecked="{Binding Autostart}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
             
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">

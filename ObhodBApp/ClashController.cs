@@ -36,30 +36,28 @@ public class ClashController
             RedirectStandardOutput = true,
             RedirectStandardError = true
         };
-        
         clash = new Process
         {
             StartInfo = clashsi,
             EnableRaisingEvents = true
         };
-        
         clash.OutputDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data); }); };
         clash.ErrorDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data); }); };
-        clash.Exited += async (sender, args) =>
+        clash.Exited += (sender, args) =>
         {
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            Dispatcher.UIThread.InvokeAsync(() =>
             {
                 AddConsoleLine("[ ", Colors.White);
                 AddConsoleLine("EXIT", Colors.OrangeRed);
                 AddConsoleLine(" ] " + "Программа завершила работу с кодом " + clash.ExitCode + "\n", Colors.White);
-                
+
                 window.MainBtnIcon.Foreground = Brushes.Orange;
                 window.MainBtnIcon.Animation = MaterialIconAnimation.None;
                 window.isEnable = false;
             });
         };
         
-        clash.Start();
+        Dispatcher.UIThread.Invoke(() => { clash.Start(); });
         clash.BeginOutputReadLine();
         clash.BeginErrorReadLine();
     }
@@ -70,7 +68,6 @@ public class ClashController
         {
             if (clash.HasExited) return;
             clash.Close();
-            clash.WaitForExit();
             clash = null;
         }
     }
@@ -94,23 +91,18 @@ public class ClashController
     {
         var m = Regex.Match(line, @"\[(?<proto>TCP|UDP)\]\s+(?<src>[^()]+)\((?<prog>[^)]+)\)\s+-->\s+(?<dst>\S+)\s+match\s+(?<rest>.+)");
         if (!m.Success) return;
-
+        
         string protocol = m.Groups["proto"].Value;
         string program = m.Groups["prog"].Value;
         string destination = m.Groups["dst"].Value;
         string rest = m.Groups["rest"].Value;
-
         string route = rest.Contains("ObhodBlokirovok") ? "NGPN" : "DIRECT";
         string ruleInfo = "";
-
         var ruleMatch = Regex.Match(rest, @"(?<rule>\w+\([^\)]+\))");
         if (ruleMatch.Success) ruleInfo = ruleMatch.Groups["rule"].Value;
-
         var filterMatch = Regex.Match(rest, @"ObhodBlokirovok\[(?<f>[^\]]+)\]");
         if (filterMatch.Success)
             ruleInfo += $" [{filterMatch.Groups["f"].Value}]";
-
-        // === вывод ===
         AddConsoleLine("[ ", Colors.White);
         AddConsoleLine(protocol, protocol == "TCP" ? Colors.Cyan : Colors.DarkCyan);
         AddConsoleLine(" : ", Colors.White);
@@ -141,29 +133,29 @@ public class ClashController
     
     public void AddConsoleLine(string text, Color color)
     {
-        var run = new Run
+        Dispatcher.UIThread.InvokeAsync(() =>
         {
-            Text = text,
-            Foreground = new SolidColorBrush(color)
-        };
-        window.ConsoleTextBlock.Inlines.Add(run);
-
-        while (window.ConsoleTextBlock.Inlines.Count > 1000)
-        {
-            window.ConsoleTextBlock.Inlines.RemoveAt(0);
-        }
-        
-        if (window.ConsoleTextBlock.Parent is ScrollViewer scroll)
-        {
-            // Подписываемся на LayoutUpdated один раз
-            void OnLayoutUpdated(object? sender, EventArgs e)
+            var run = new Run
             {
-                scroll.ScrollToEnd();   // Прокрутка вниз
-                window.ConsoleTextBlock.LayoutUpdated -= OnLayoutUpdated;
-            }
+                Text = text,
+                Foreground = new SolidColorBrush(color)
+            };
+            window.ConsoleTextBlock.Inlines.Add(run);
 
-            window.ConsoleTextBlock.LayoutUpdated += OnLayoutUpdated;
-        }
+            while (window.ConsoleTextBlock.Inlines.Count > 1000)
+                window.ConsoleTextBlock.Inlines.RemoveAt(0);
+
+            if (window.ConsoleTextBlock.Parent is ScrollViewer scroll)
+            {
+                void OnLayoutUpdated(object? sender, EventArgs e)
+                {
+                    scroll.ScrollToEnd();
+                    window.ConsoleTextBlock.LayoutUpdated -= OnLayoutUpdated;
+                }
+
+                window.ConsoleTextBlock.LayoutUpdated += OnLayoutUpdated;
+            }
+        });
     }
 
     public bool TryConfig()

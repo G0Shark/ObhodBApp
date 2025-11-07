@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading;
@@ -15,11 +16,14 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using Material.Icons;
+using ReactiveUI;
 using SkiaSharp;
 
 namespace ObhodBApp;
@@ -40,13 +44,15 @@ public partial class MainWindow : Window
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
 
-    private long recvAllSecs = 0;
-    private long sendAllSecs = 0;
-    private int secs = 0;
+    private long recvAllSecs = 1;
+    private long sendAllSecs = 1;
+    private int secs = 1;
     
     private ClashController controller;
     private Task updater;
     public AppSettings _appSettings;
+    private bool _isWindowHidden;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -70,67 +76,214 @@ public partial class MainWindow : Window
             }
         };
 
+        var menu = new NativeMenu();
+            
+        menu.Add(new NativeMenuItem("Выход")
+        {
+            Command = ReactiveUI.ReactiveCommand.Create(() =>
+            {
+                Close();
+            })
+        });
+            
+        trayIcon = new TrayIcon
+        {
+            ToolTipText = "ObhodBApp",
+            Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/icon.ico"))),
+            Menu = menu
+        };
+
+        trayIcon.Clicked += (sender, e) =>
+        {
+            if (_isWindowHidden)
+            {
+                Show();
+                Activate();
+                _isWindowHidden = false;
+            }
+            else
+            {
+                Hide();
+                _isWindowHidden = true;
+            }
+        };
+        
+        trayIcon.IsVisible = true;
+        
         Editor.Text =
             File.ReadAllText($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!}\\clash\\config.yaml");
 
         CheckIpAdress();
+        LogDelay();
     }
+
+    private async Task LogDelay()
+    {
+        while (Logger.LogBlock == null)
+            await Task.Delay(100);
+        
+        Logger.WriteLog(null, "INFO", "Тут будут логи от clash", Colors.Aqua, null);
+        UpdateTray();
+    }
+
+    private  void UpdateTray(string? time = "", string? total = "")
+    {
+        var menu = new NativeMenu();
+
+        if (!isEnable)
+        {
+            menu.Add(new NativeMenuItem("Включить")
+            {
+                Command = ReactiveCommand.CreateFromTask(
+                    async () =>
+                    {
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            ToggleClash();
+                        });
+                    },
+                    outputScheduler: RxApp.MainThreadScheduler
+                )
+            });
+            
+            menu.Add(new NativeMenuItemSeparator());
+            
+            menu.Add(new NativeMenuItem("Выйти")
+            {
+                Command = ReactiveCommand.CreateFromTask(
+                    async () =>
+                    {
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            Close();
+                        });
+                    },
+                    outputScheduler: RxApp.MainThreadScheduler
+                )
+            });
+
+            trayIcon.Menu = menu;
+            
+            return;
+        }
+        
+        menu.Add(new NativeMenuItem("Включить")
+        {
+            Command = ReactiveCommand.CreateFromTask(
+                async () =>
+                {
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        ToggleClash();
+                    });
+                },
+                outputScheduler: RxApp.MainThreadScheduler
+            )
+        });
+
+        menu.Add(new NativeMenuItemSeparator());
+        
+        menu.Add(new NativeMenuItem("Траффик - " + total));
+        menu.Add(new NativeMenuItem("Время - " + time));
+        
+        menu.Add(new NativeMenuItemSeparator());
+            
+        menu.Add(new NativeMenuItem("Выйти")
+        {
+            Command = ReactiveCommand.CreateFromTask(
+                async () =>
+                {
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        Close();
+                    });
+                },
+                outputScheduler: RxApp.MainThreadScheduler
+            )
+        });
+
+        trayIcon.Menu = menu;
+    }
+    
     private async Task MainUpdateTask()
     {
         while (true)
         {
-            var stats1 = adapter.GetIPv4Statistics();
-            long recv1 = stats1.BytesReceived;
-            long sent1 = stats1.BytesSent;
-            
-            ErrPckText.Text = (stats1.IncomingPacketsWithErrors + stats1.OutgoingPacketsWithErrors).ToString();
-            
-            await Task.Delay(_appSettings.updateInterval);
-
-            var stats2 = adapter.GetIPv4Statistics();
-            long recv2 = stats2.BytesReceived;
-            long sent2 = stats2.BytesSent;
-
-            long recvPerSec = recv2 - recv1;
-            long sentPerSec = sent2 - sent1;
-
-            recvAllSecs += recvPerSec;
-            sendAllSecs += sentPerSec;
-            secs += _appSettings.updateInterval;
-            
-            MUplText.Text = FormatBytes(sendAllSecs/(long)TimeSpan.FromMilliseconds(secs).TotalSeconds);
-            MDwlText.Text = FormatBytes(recvAllSecs/(long)TimeSpan.FromMilliseconds(secs).TotalSeconds);
-            Time.Text = TimeSpan.FromMilliseconds(secs).ToString(@"hh\:mm\:ss");
-            
-            UplText.Text = FormatBytes(sentPerSec);
-            DwlText.Text = FormatBytes(recvPerSec);
-            
-            long totalReceived = stats2.BytesReceived;
-            long totalSent = stats2.BytesSent;
-            long totalTraffic = totalReceived + totalSent;
-
-            TrafficText.Text = FormatBytes(totalTraffic);
-            
-            line1Values.Add(recvPerSec);
-            line2Values.Add(sentPerSec);
-
-            while (line1Values.Count > _appSettings.updatesCount)
-                line1Values.RemoveAt(0);
-            
-            while (line2Values.Count > _appSettings.updatesCount)
-                line2Values.RemoveAt(0);
-            
-            Chart.Series = new ISeries[]
+            try
             {
-                new LineSeries<double> { Fill = new SolidColorPaint(new SKColor(SKColors.Green.Red, SKColors.Green.Green, SKColors.Green.Blue, 60)), Stroke = new SolidColorPaint(SKColors.Green) { StrokeThickness = 4 }, Values = line1Values, GeometryFill = null, GeometryStroke = null, AnimationsSpeed = TimeSpan.Zero, YToolTipLabelFormatter = point =>
+                var stats1 = adapter.GetIPv4Statistics();
+                long recv1 = stats1.BytesReceived;
+                long sent1 = stats1.BytesSent;
+
+                await Task.Delay(_appSettings.updateInterval);
+
+                var stats2 = adapter.GetIPv4Statistics();
+                long recv2 = stats2.BytesReceived;
+                long sent2 = stats2.BytesSent;
+
+                long recvPerSec = recv2 - recv1;
+                long sentPerSec = sent2 - sent1;
+
+                if (isEnable)
                 {
-                    return FormatBytes((long)point.Model);
-                } },
-                new LineSeries<double> { Fill = new SolidColorPaint(new SKColor(SKColors.Orange.Red, SKColors.Orange.Green, SKColors.Orange.Blue, 60)), Stroke = new SolidColorPaint(SKColors.Orange) { StrokeThickness = 4 }, Values = line2Values, GeometryFill = null, GeometryStroke = null, AnimationsSpeed = TimeSpan.Zero, YToolTipLabelFormatter = point =>
+                    recvAllSecs += recvPerSec;
+                    sendAllSecs += sentPerSec;
+                    secs += _appSettings.updateInterval;
+                }
+
+                long totalReceived = stats2.BytesReceived;
+                long totalSent = stats2.BytesSent;
+                long totalTraffic = totalReceived + totalSent;
+
+                UpdateTray(TimeSpan.FromMilliseconds(secs).ToString(@"hh\:mm\:ss"), FormatBytes(totalTraffic));
+
+                ErrPckText.Text = (stats1.IncomingPacketsWithErrors + stats1.OutgoingPacketsWithErrors).ToString();
+
+                if (secs >= _appSettings.updateInterval)
                 {
-                    return FormatBytes((long)point.Model);
-                } },
-            };
+                    MUplText.Text = FormatBytes(sendAllSecs / (long)TimeSpan.FromMilliseconds(secs).TotalSeconds);
+                    MDwlText.Text = FormatBytes(recvAllSecs / (long)TimeSpan.FromMilliseconds(secs).TotalSeconds);
+                }
+                Time.Text = TimeSpan.FromMilliseconds(secs).ToString(@"hh\:mm\:ss");
+
+                UplText.Text = FormatBytes(sentPerSec);
+                DwlText.Text = FormatBytes(recvPerSec);
+
+                TrafficText.Text = FormatBytes(totalTraffic);
+
+                line1Values.Add(recvPerSec);
+                line2Values.Add(sentPerSec);
+
+                while (line1Values.Count > _appSettings.updatesCount)
+                    line1Values.RemoveAt(0);
+
+                while (line2Values.Count > _appSettings.updatesCount)
+                    line2Values.RemoveAt(0);
+
+                Chart.Series = new ISeries[]
+                {
+                    new LineSeries<double>
+                    {
+                        Fill = new SolidColorPaint(new SKColor(SKColors.Green.Red, SKColors.Green.Green,
+                            SKColors.Green.Blue, 60)),
+                        Stroke = new SolidColorPaint(SKColors.Green) { StrokeThickness = 4 }, Values = line1Values,
+                        GeometryFill = null, GeometryStroke = null, AnimationsSpeed = TimeSpan.Zero,
+                        YToolTipLabelFormatter = point => { return FormatBytes((long)point.Model); }
+                    },
+                    new LineSeries<double>
+                    {
+                        Fill = new SolidColorPaint(new SKColor(SKColors.Orange.Red, SKColors.Orange.Green,
+                            SKColors.Orange.Blue, 60)),
+                        Stroke = new SolidColorPaint(SKColors.Orange) { StrokeThickness = 4 }, Values = line2Values,
+                        GeometryFill = null, GeometryStroke = null, AnimationsSpeed = TimeSpan.Zero,
+                        YToolTipLabelFormatter = point => { return FormatBytes((long)point.Model); }
+                    },
+                };
+            }
+            catch (Exception ex)
+            {
+                Logger.WriteLog(null, "ERROR", ex.Message + " | " + ex.StackTrace, Colors.Red, null);
+            }
         }
     }
     
@@ -149,6 +302,11 @@ public partial class MainWindow : Window
     
     private async void MainBtn_OnClick(object? sender, RoutedEventArgs e)
     {
+        ToggleClash();
+    }
+
+    void ToggleClash()
+    {
         if (!isEnable)
         {
             MainBtn.IsEnabled = false;
@@ -157,26 +315,27 @@ public partial class MainWindow : Window
             secs = 0;
             recvAllSecs = 0;
             sendAllSecs = 0;
+            trayIcon.Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/enabled.ico")));
             TimeIcon.Animation = MaterialIconAnimation.None;
             MainBtnIcon.Animation = MaterialIconAnimation.Spin;
             isEnable = true;
             MainBtn.IsEnabled = true;
+
         }
         else
         {
             MainBtn.IsEnabled = false;
             MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
             controller.Stop();
+            trayIcon.Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/icon.ico")));
             TimeIcon.Animation = MaterialIconAnimation.FadeInOut;
             MainBtnIcon.Animation = MaterialIconAnimation.None;
             isEnable = false;
             MainBtn.IsEnabled = true;
         }
-        
-        CheckIpAdress();
     }
     
-    private async Task CheckIpAdress()
+    private async Task<string> CheckIpAdress()
     {
         try
         {
@@ -190,6 +349,7 @@ public partial class MainWindow : Window
                 IpIcon.ClearValue(TextBlock.ForegroundProperty);
                 IpInfo.Text = $"Ваш IP: {info.ip} {GetFlagEmoji(info.cc)}";
                 IpIcon.Animation = MaterialIconAnimation.None;
+                return $"Ваш IP: {info.ip} {GetFlagEmoji(info.cc)}";
             }
         }
         catch (Exception ex)
@@ -199,13 +359,13 @@ public partial class MainWindow : Window
             IpIcon.Foreground = Brushes.Red;
             IpIcon.Animation = MaterialIconAnimation.FadeInOut;
         }
+        
+        return "";
     }
     
+    //TODO: Не работают эмоджи
     public static string GetFlagEmoji(string countryCode)
     {
-        if (string.IsNullOrEmpty(countryCode) || countryCode.Length != 2)
-            throw new ArgumentException("Код страны должен состоять из двух букв (например, 'RU').");
-        
         countryCode = countryCode.ToUpperInvariant();
         
         int offset = 0x1F1E6 - 'A';
@@ -216,6 +376,16 @@ public partial class MainWindow : Window
         );
 
         return flag;
+    }
+    
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        if (_appSettings.goToTray)
+        {
+            base.OnClosing(e);
+            e.Cancel = true;
+            Hide();
+        }
     }
     
     public void OnAppExit()
@@ -241,7 +411,6 @@ public partial class MainWindow : Window
         
         CfgWait.Animation = MaterialIconAnimation.FadeInOut;
         CfgWait.Kind = MaterialIconKind.Success;
-        return;
     }
 
     private void ConfigChanged(object? sender, EventArgs e)
@@ -257,5 +426,5 @@ public class IpResponse
 {
     public string ip { get; set; }
     public string country { get; set; }
-    public string cc { get; set; } // country code (например "US")
+    public string cc { get; set; }
 }

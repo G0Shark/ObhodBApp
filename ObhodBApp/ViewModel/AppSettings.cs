@@ -16,6 +16,8 @@ public class AppSettings : ReactiveObject
     public int updateInterval { get; set; } = 1000;
     public bool checkForUpdates { get; set; } = true; 
     public int updatesCount { get; set; } = 20;
+    public bool goToTray { get; set; } = true;
+    public bool Autostart {  get; set; } = false;
 
     private static readonly string SettingsFilePath =
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");

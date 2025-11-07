@@ -46,57 +46,6 @@ public partial class App : Application
             desktop.Exit += OnExit;
 
             Logger.LogBlock = mainWindow.ConsoleTextBlock; //оч важная строчка
-
-            var menu = new NativeMenu();
-            
-            menu.Add(new NativeMenuItem("Переключение")
-            {
-                Command = ReactiveUI.ReactiveCommand.Create(() =>
-                {
-                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                    {
-                        desktop.MainWindow?.Show();
-                        desktop.MainWindow?.Activate();
-                    }
-                })
-            });
-
-            menu.Add(new NativeMenuItemSeparator());
-            
-            menu.Add(new NativeMenuItem("Выход")
-            {
-                Command = ReactiveUI.ReactiveCommand.Create(() =>
-                {
-                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                        desktop.Shutdown();
-                })
-            });
-            
-            _trayIcon = new TrayIcon
-            {
-                ToolTipText = "ObhodBApp",
-                Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/icon.ico"))),
-                Menu = menu
-            };
-
-            _trayIcon.Clicked += (sender, e) =>
-            {
-                if (_isWindowHidden)
-                {
-                    mainWindow.Show();
-                    mainWindow.Activate();
-                    _isWindowHidden = false;
-                }
-                else
-                {
-                    mainWindow.Hide();
-                    _isWindowHidden = true;
-                }
-            };
-
-            _trayIcon.IsVisible = true;
-            
-            mainWindow.trayIcon = _trayIcon;
         }
 
         base.OnFrameworkInitializationCompleted();
