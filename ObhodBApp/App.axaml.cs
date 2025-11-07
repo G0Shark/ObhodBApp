@@ -41,9 +41,17 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            string[] args = desktop.Args;
+            
             mainWindow = new MainWindow();
             desktop.MainWindow = mainWindow;
             desktop.Exit += OnExit;
+            
+            if (args.Length > 0)
+            {
+                if (args[0] == "--autostart")
+                    mainWindow.Autostart();
+            }
 
             Logger.LogBlock = mainWindow.ConsoleTextBlock; //оч важная строчка
         }

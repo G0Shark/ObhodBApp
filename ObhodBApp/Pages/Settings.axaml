@@ -81,7 +81,7 @@
                                    FontSize="12" Foreground="Gray"/>
                         <TextBlock Text="На Linux работает только при systemd."
                                    FontSize="12" Foreground="Gray"/>
-                        <ToggleSwitch IsChecked="{Binding Autostart}" HorizontalAlignment="Left"/>
+                        <ToggleSwitch IsCheckedChanged="CheckToggle" IsChecked="{Binding Autostart}" HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
             </StackPanel>

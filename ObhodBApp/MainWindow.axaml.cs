@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -155,7 +156,8 @@ public partial class MainWindow : Window
                     {
                         await Dispatcher.UIThread.InvokeAsync(() =>
                         {
-                            Close();
+                            (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?
+                                .Shutdown();
                         });
                     },
                     outputScheduler: RxApp.MainThreadScheduler
@@ -195,7 +197,8 @@ public partial class MainWindow : Window
                 {
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        Close();
+                        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?
+                            .Shutdown();
                     });
                 },
                 outputScheduler: RxApp.MainThreadScheduler
@@ -419,6 +422,12 @@ public partial class MainWindow : Window
             CfgWait.Animation = MaterialIconAnimation.Spin;
         if (CfgWait.Kind != MaterialIconKind.CogClockwise)
             CfgWait.Kind = MaterialIconKind.CogClockwise;
+    }
+
+    public void Autostart()
+    {
+        Hide();
+        ToggleClash();
     }
 }
 
