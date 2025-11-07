@@ -13,50 +13,47 @@ public class SettingsViewModel : ReactiveObject
 {
     private const string SettingsFileName = "settings.json";
 
-    private int _updateInterval;
-    public int UpdateInterval
+    public int updateInterval { get; set; } = 1000;
+
+    private static readonly string SettingsFilePath =
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
+
+    public void Save()
     {
-        get => _updateInterval;
-        set => this.RaiseAndSetIfChanged(ref _updateInterval, value);
-    }
-
-    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-
-    public SettingsViewModel()
-    {
-        SaveCommand = ReactiveCommand.Create(SaveSettings);
-        LoadSettings();
-    }
-
-    private void SaveSettings()
-    {
-        var settings = new Settings
-        {
-            UpdateInterval = this.UpdateInterval
-        };
-
-        string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(SettingsFileName, json);
-    }
-
-    private void LoadSettings()
-    {
-        if (!File.Exists(SettingsFileName))
-            return;
-
         try
         {
-            string json = File.ReadAllText(SettingsFileName);
-            var settings = JsonSerializer.Deserialize<Settings>(json);
-
-            if (settings != null)
+            string json = JsonSerializer.Serialize(this, new JsonSerializerOptions
             {
-                UpdateInterval = settings.UpdateInterval;
-            }
+                WriteIndented = true
+            });
+
+            File.WriteAllText(SettingsFilePath, json);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка при загрузке настроек: {ex.Message}");
+            Console.WriteLine($"Ошибка сохранения настроек: {ex.Message}");
+        }
+    }
+
+    public static SettingsViewModel Load()
+    {
+        try
+        {
+            if (!File.Exists(SettingsFilePath))
+            {
+                var defaultSettings = new SettingsViewModel();
+                defaultSettings.Save();
+                return defaultSettings;
+            }
+
+            string json = File.ReadAllText(SettingsFilePath);
+            var settings = JsonSerializer.Deserialize<SettingsViewModel>(json);
+
+            return settings ?? new SettingsViewModel();
+        }
+        catch
+        {
+            return new SettingsViewModel();
         }
     }
 }

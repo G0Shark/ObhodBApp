@@ -6,6 +6,7 @@
         <entry key="ObhodBApp/App.axaml" value="ObhodBApp/ObhodBApp.csproj" />
         <entry key="ObhodBApp/MainWindow.axaml" value="ObhodBApp/ObhodBApp.csproj" />
         <entry key="ObhodBApp/Pages/Settings.axaml" value="ObhodBApp/ObhodBApp.csproj" />
+        <entry key="ObhodBApp/UpdateMsg.axaml" value="ObhodBApp/ObhodBApp.csproj" />
       </map>
     </option>
   </component>

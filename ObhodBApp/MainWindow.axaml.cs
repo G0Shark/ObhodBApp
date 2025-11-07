@@ -27,6 +27,7 @@ namespace ObhodBApp;
 public partial class MainWindow : Window
 {
     public bool isEnable;
+    public TrayIcon trayIcon;
     NetworkInterface adapter = NetworkInterface.GetAllNetworkInterfaces()
         .FirstOrDefault(ni => ni.Name == "Meta")!;
 

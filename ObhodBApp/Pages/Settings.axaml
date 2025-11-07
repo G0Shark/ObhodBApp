@@ -27,7 +27,7 @@
                         <NumericUpDown Minimum="1"
                                        Maximum="100000"
                                        Width="300"
-                                       Value="{Binding UpdateInterval, Mode=TwoWay}"
+                                       Value="{Binding updateInterval, Mode=TwoWay}"
                                        HorizontalAlignment="Left"/>
                     </StackPanel>
                 </Border>
@@ -43,7 +43,7 @@
                         Foreground="White"
                         FontWeight="Bold"
                         HorizontalAlignment="Right"
-                        Command="{Binding SaveCommand}" />
+                        Click="Save" />
             </StackPanel>
         </StackPanel>
     </ScrollViewer>
