@@ -53,17 +53,16 @@ rules:
   - DOMAIN-SUFFIX,twitter.com,ObhodBlokirovok
   - DOMAIN-KEYWORD,twitter,ObhodBlokirovok
   - DOMAIN-KEYWORD,twitter,ObhodBlokirovok
+  - DOMAIN-KEYWORD,twimg,ObhodBlokirovok
   # Discord
   - PROCESS-NAME,vesktop.exe,ObhodBlokirovok
+  - DOMAIN-KEYWORD,discord,ObhodBlokirovok
+  - PROCESS-NAME,Discord.exe,ObhodBlokirovok
   # DeviantArt
   - DOMAIN-SUFFIX,wixmp,ObhodBlokirovok
   - DOMAIN-SUFFIX,winxmp.com,ObhodBlokirovok
   - DOMAIN-KEYWORD,wixmp,ObhodBlokirovok
   - DOMAIN-KEYWORD,speedtest,ObhodBlokirovok
-  # батла
-  - PROCESS-NAME,bf6.exe,ObhodBlokirovok
-  - DOMAIN-KEYWORD,rule34,ObhodBlokirovok
-  - DOMAIN-KEYWORD,discord,ObhodBlokirovok
-  - PROCESS-NAME,Discord.exe,ObhodBlokirovok
-  - DOMAIN-KEYWORD,twimg,ObhodBlokirovok
+
+  # Обязательно оставьте эту строчку, иначе весь остальной интернет (не через прокси) упадёт
   - MATCH,DIRECT
