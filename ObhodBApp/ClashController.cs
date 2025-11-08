@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
@@ -22,7 +23,7 @@ public class ClashController
     {
         this.window = window;
 
-        mainDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        mainDir = AppContext.BaseDirectory;
     }
     
     public void Start()
@@ -41,8 +42,11 @@ public class ClashController
             StartInfo = clashsi,
             EnableRaisingEvents = true
         };
-        clash.OutputDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data); }); };
-        clash.ErrorDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data); }); };
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            //MakeProcessKillOnParentExit(clash);
+        
+        clash.OutputDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data??""); }); };
+        clash.ErrorDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data??""); }); };
         clash.Exited += (sender, args) =>
         {
             Dispatcher.UIThread.InvokeAsync(() =>
@@ -64,11 +68,13 @@ public class ClashController
 
     public void Stop()
     {
-        if (clash != null)
+        try
         {
-            if (clash.HasExited) return;
-            clash.Close();
-            clash = null;
+            clash.Kill();
+        }
+        catch (Exception e)
+        {
+            // ignored
         }
     }
     
@@ -96,7 +102,7 @@ public class ClashController
         string program = m.Groups["prog"].Value;
         string destination = m.Groups["dst"].Value;
         string rest = m.Groups["rest"].Value;
-        string route = rest.Contains("ObhodBlokirovok") ? "NGPN" : "DIRECT";
+        string route = rest.Contains("ObhodBlokirovok") ? "PROXY" : "DIRECT";
         string ruleInfo = "";
         var ruleMatch = Regex.Match(rest, @"(?<rule>\w+\([^\)]+\))");
         if (ruleMatch.Success) ruleInfo = ruleMatch.Groups["rule"].Value;
@@ -106,7 +112,7 @@ public class ClashController
         AddConsoleLine("[ ", Colors.White);
         AddConsoleLine(protocol, protocol == "TCP" ? Colors.Cyan : Colors.DarkCyan);
         AddConsoleLine(" : ", Colors.White);
-        AddConsoleLine(route == "DIRECT" ? "DIRECT" : "NGPN", route == "DIRECT" ? Colors.Orange : Colors.Green);
+        AddConsoleLine(route == "DIRECT" ? "DIRECT" : "PROXY", route == "DIRECT" ? Colors.Orange : Colors.Green);
         AddConsoleLine(" ] " + program + " --> " + destination, Colors.White);
         AddConsoleLine($" ({ruleInfo})\n", Colors.Gray);
     }
@@ -184,5 +190,42 @@ public class ClashController
             return true;
         
         return false;
+    }
+    
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string? lpName);
+
+    [DllImport("kernel32.dll")]
+    static extern bool SetInformationJobObject(IntPtr hJob, int JobObjectInfoClass, ref JOBOBJECT_BASIC_LIMIT_INFORMATION lpJobObjectInfo, int cbJobObjectInfoLength);
+
+    [DllImport("kernel32.dll")]
+    static extern bool AssignProcessToJobObject(IntPtr hJob, IntPtr hProcess);
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct JOBOBJECT_BASIC_LIMIT_INFORMATION
+    {
+        public long PerProcessUserTimeLimit;
+        public long PerJobUserTimeLimit;
+        public uint LimitFlags;
+        public UIntPtr MinimumWorkingSetSize;
+        public UIntPtr MaximumWorkingSetSize;
+        public uint ActiveProcessLimit;
+        public IntPtr Affinity;
+        public uint PriorityClass;
+        public uint SchedulingClass;
+    }
+
+    const int JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000;
+    const int JobObjectExtendedLimitInformation = 9;
+
+    public static void MakeProcessKillOnParentExit(Process process)
+    {
+        var job = CreateJobObject(IntPtr.Zero, null);
+        var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION
+        {
+            LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        };
+        SetInformationJobObject(job, JobObjectExtendedLimitInformation, ref info, Marshal.SizeOf<JOBOBJECT_BASIC_LIMIT_INFORMATION>());
+        AssignProcessToJobObject(job, process.Handle);
     }
 }

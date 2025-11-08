@@ -33,10 +33,9 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     
-                    
-                    <Button Grid.Row="1" Name="MainBtn" Margin="60" HorizontalAlignment="Center"
-                            CornerRadius="150" Click="MainBtn_OnClick">
-                        <materialIcons:MaterialIcon Name="MainBtnIcon" Padding="20" Kind="Web" IconSize="200" />
+                    <Button Grid.Row="1" Name="MainBtn" Margin="30" HorizontalAlignment="Center"
+                            CornerRadius="100" Click="MainBtn_OnClick">
+                        <materialIcons:MaterialIcon Name="MainBtnIcon" Padding="20" Kind="Web" IconSize="150" />
                     </Button>
 
                     <StackPanel Grid.Row="2" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">

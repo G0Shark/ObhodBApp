@@ -48,7 +48,7 @@ public partial class MainWindow : Window
     private long recvAllSecs = 1;
     private long sendAllSecs = 1;
     private int secs = 1;
-    
+    private readonly ConfigService _configService = new();
     private ClashController controller;
     private Task updater;
     public AppSettings _appSettings;
@@ -60,11 +60,15 @@ public partial class MainWindow : Window
         controller = new ClashController(this);
         
         _appSettings = AppSettings.Load();
+        _configService.Load();
 
         if (_appSettings.checkForUpdates)
         {
-            var updateMsg = new UpdateMsg();
-            updateMsg.Show();
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var win = new UpdateMsg();
+                win.Show();
+            });
         }
         
         updater = MainUpdateTask();
@@ -112,7 +116,7 @@ public partial class MainWindow : Window
         trayIcon.IsVisible = true;
         
         Editor.Text =
-            File.ReadAllText($"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!}\\clash\\config.yaml");
+            File.ReadAllText($"{AppContext.BaseDirectory}\\clash\\config.yaml");
 
         CheckIpAdress();
         LogDelay();
@@ -156,8 +160,7 @@ public partial class MainWindow : Window
                     {
                         await Dispatcher.UIThread.InvokeAsync(() =>
                         {
-                            (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?
-                                .Shutdown();
+                            Environment.Exit(0);
                         });
                     },
                     outputScheduler: RxApp.MainThreadScheduler
@@ -197,8 +200,7 @@ public partial class MainWindow : Window
                 {
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?
-                            .Shutdown();
+                        Environment.Exit(0);
                     });
                 },
                 outputScheduler: RxApp.MainThreadScheduler
@@ -366,7 +368,6 @@ public partial class MainWindow : Window
         return "";
     }
     
-    //TODO: Не работают эмоджи
     public static string GetFlagEmoji(string countryCode)
     {
         countryCode = countryCode.ToUpperInvariant();
@@ -398,7 +399,7 @@ public partial class MainWindow : Window
 
     private void ClashConfigSave(object? sender, RoutedEventArgs e)
     {
-        string cfgPath = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!}\\clash\\config.yaml";
+        string cfgPath = $"{AppContext.BaseDirectory}\\clash\\config.yaml";
         string reserve =
             File.ReadAllText(cfgPath);
 
@@ -426,8 +427,8 @@ public partial class MainWindow : Window
 
     public void Autostart()
     {
-        Hide();
         ToggleClash();
+        Hide();
     }
 }
 

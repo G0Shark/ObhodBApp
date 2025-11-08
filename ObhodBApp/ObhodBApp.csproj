@@ -6,6 +6,7 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -37,10 +38,12 @@
 
     <ItemGroup>
       <None Remove="icon.ico" />
-      <AvaloniaResource Include="icon.ico" />
+      <AvaloniaResource Include="icon.ico">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </AvaloniaResource>
       <None Remove="enabled.ico" />
       <AvaloniaResource Include="enabled.ico">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </AvaloniaResource>
     </ItemGroup>
 

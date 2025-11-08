@@ -29,7 +29,7 @@ public static class Logger
 
     public static void Log(string text, string logtype = "log")
     {
-        string mainDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        string mainDir = AppContext.BaseDirectory;
         
         if (!Directory.Exists($"{mainDir}\\logs"))
             Directory.CreateDirectory($"{mainDir}\\logs");

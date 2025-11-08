@@ -48,7 +48,7 @@ public partial class App : Application
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            string[] args = desktop.Args;
+            string[] args = desktop.Args??[];
             
             mainWindow = new MainWindow();
             desktop.MainWindow = mainWindow;
@@ -66,33 +66,28 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
     
-    
+    //TODO: ErrMesage вызывает ошибки удрал пока что
     private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         var ex = (Exception)e.ExceptionObject;
         Logger.Log(ex.ToString(), "error.txt");
-        ErrorMiddleware errM = new(ex);
-        errM.Show();
     }
 
     private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         Logger.Log(e.Exception.ToString(), "error.txt");
-        ErrorMiddleware errM = new(e.Exception);
-        errM.Show();
         e.SetObserved();
     }
 
     private void OnUIThreadException(object? sender, DispatcherUnhandledExceptionEventArgs e)
     {
         Logger.Log(e.Exception.ToString(), "error.txt");
-        ErrorMiddleware errM = new(e.Exception);
-        errM.Show();
         e.Handled = true;
     }
 
     private void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
     {
         mainWindow.OnAppExit();
+        Environment.Exit(0);
     }
 }

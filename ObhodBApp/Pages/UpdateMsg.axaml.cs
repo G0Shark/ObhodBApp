@@ -18,7 +18,12 @@ public partial class UpdateMsg : Window
     public UpdateMsg()
     {
         InitializeComponent();
-        
+
+        NewMethod();
+    }
+
+    private async void NewMethod()
+    {
         try
         {
             using HttpClient client = new HttpClient
@@ -29,7 +34,7 @@ public partial class UpdateMsg : Window
 
             HttpWebRequest request =
                 (HttpWebRequest)WebRequest.Create(
-                    "https://raw.githubusercontent.com/G0Shark/ObhodBApp/master/version.json");
+                    "https://raw.githubusercontent.com/G0Shark/ObhodBApp/refs/heads/main/ObhodBApp/version.json");
             request.Method = "GET";
 
             string content = "";
@@ -79,7 +84,7 @@ public partial class UpdateMsg : Window
 
     private void GetUpdate(object? sender, RoutedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo("https://github.com/G0Shark/ObhodBlokirovok/releases/latest") { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo("https://github.com/G0Shark/ObhodBApp/releases/latest") { UseShellExecute = true });
     }
 
     private void Close(object? sender, RoutedEventArgs e)
