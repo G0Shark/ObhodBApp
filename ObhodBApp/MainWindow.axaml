@@ -33,6 +33,12 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     
+                    <ComboBox Grid.Row="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" FontSize="30" CornerRadius="100" Width="350" FontWeight="Bold" Margin="20" Padding="10" SelectedIndex="0">
+                        <ComboBoxItem>mediks</ComboBoxItem>
+                        <ComboBoxItem>sds</ComboBoxItem>
+                        <ComboBoxItem>saffag</ComboBoxItem>
+                    </ComboBox>
+                    
                     <Button Grid.Row="1" Name="MainBtn" Margin="30" HorizontalAlignment="Center"
                             CornerRadius="100" Click="MainBtn_OnClick">
                         <materialIcons:MaterialIcon Name="MainBtnIcon" Padding="20" Kind="Web" IconSize="150" />

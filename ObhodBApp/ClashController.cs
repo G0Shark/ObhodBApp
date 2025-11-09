@@ -43,7 +43,9 @@ public class ClashController
             EnableRaisingEvents = true
         };
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
             //MakeProcessKillOnParentExit(clash);
+        }
         
         clash.OutputDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data??""); }); };
         clash.ErrorDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data??""); }); };
@@ -64,6 +66,11 @@ public class ClashController
         Dispatcher.UIThread.Invoke(() => { clash.Start(); });
         clash.BeginOutputReadLine();
         clash.BeginErrorReadLine();
+        
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            window.MainBtnIcon.Foreground = Brushes.White;
+        });
     }
 
     public void Stop()
@@ -80,6 +87,9 @@ public class ClashController
     
     private void FormatAndOut(string logLine)
     {
+        if (logLine == "")
+            return;
+        
         var result = ParseDefaultClashLogs(logLine);
 
         if (result.Level != "info")

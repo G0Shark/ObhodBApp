@@ -67,7 +67,6 @@ public partial class MainWindow : Window
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var win = new UpdateMsg();
-                win.Show();
             });
         }
         
