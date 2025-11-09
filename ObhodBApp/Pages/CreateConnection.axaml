@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="ObhodBApp.Pages.CreateConnection"
+        Title="CreateConnection">
+    <ListBox x:Name="OptionsListBox" SelectionChanged="Selected"
+             SelectionMode="Single">
+        <ListBoxItem>
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <materialIcons:MaterialIcon Kind="Clipboard" IconSize="20"/>
+                <TextBlock VerticalAlignment="Center" FontWeight="Bold" FontSize="20">Строка-подключения из буфера обмена</TextBlock>
+            </StackPanel>
+        </ListBoxItem>
+        <ListBoxItem IsEnabled="False">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <materialIcons:MaterialIcon Kind="Edit" IconSize="20"/>
+                <TextBlock VerticalAlignment="Center" FontWeight="Bold" FontSize="20">Ввести конфиг Clash-Meta вручную</TextBlock>
+            </StackPanel>
+        </ListBoxItem>
+        <ListBoxItem IsEnabled="False">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <materialIcons:MaterialIcon Kind="Internet" IconSize="20"/>
+                <TextBlock VerticalAlignment="Center" FontWeight="Bold" FontSize="20">Скачать конфиг из интернета</TextBlock>
+            </StackPanel>
+        </ListBoxItem>
+    </ListBox>
+</Window>

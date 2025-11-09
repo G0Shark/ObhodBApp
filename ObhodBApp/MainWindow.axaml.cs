@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -24,6 +25,7 @@ using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using Material.Icons;
+using ObhodBApp.Pages;
 using ReactiveUI;
 using SkiaSharp;
 
@@ -48,11 +50,11 @@ public partial class MainWindow : Window
     private long recvAllSecs = 1;
     private long sendAllSecs = 1;
     private int secs = 1;
-    private readonly ConfigService _configService = new();
     private ClashController controller;
     private Task updater;
     public AppSettings _appSettings;
     private bool _isWindowHidden;
+    private ConfigManager _configManager;
 
     public MainWindow()
     {
@@ -60,7 +62,16 @@ public partial class MainWindow : Window
         controller = new ClashController(this);
         
         _appSettings = AppSettings.Load();
-        _configService.Load();
+        
+        _configManager = new ConfigManager();
+        _configManager.OnCreateConnection += CreateConn;
+
+        var items = new List<ConnectionConfig>(_configManager.Configs);
+        items.Add(new ConnectionConfig { Name = "Создать соединение" });
+
+        ConfigCombo.ItemsSource = items;
+
+        ConfigCombo.SelectionChanged += ConfigSelected;
 
         if (_appSettings.checkForUpdates)
         {
@@ -119,6 +130,30 @@ public partial class MainWindow : Window
 
         CheckIpAdress();
         LogDelay();
+    }
+
+    private void ConfigSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (ConfigCombo.SelectedItem is not ConnectionConfig selected)
+            return;
+        
+        if (selected.Name == "Создать соединение")
+        {
+            _configManager.HandleSelection(selected.Name);
+            return;
+        }
+        
+        //TODO: Выбор подключения
+    }
+
+    private void CreateConn()
+    {
+        new CreateConnection(ref _configManager).Show();
+        
+        var items = new List<ConnectionConfig>(_configManager.Configs);
+        items.Add(new ConnectionConfig { Name = "Создать соединение" });
+
+        ConfigCombo.ItemsSource = items;
     }
 
     private async Task LogDelay()

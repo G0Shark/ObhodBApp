@@ -4,8 +4,8 @@ using System.Text;
 using System.Text.Json;
 using System.Web;
 
-namespace ObhodBApp;
-
+namespace ObhodBApp
+{
     public static class ClashProxyConverter
     {
         public static string ConvertToClashProxyBlock(string input)
@@ -23,7 +23,7 @@ namespace ObhodBApp;
 
             throw new Exception("Неверный формат");
         }
-        
+
         public static string ConvertMultipleToClashYaml(string uri)
         {
             var sb = new StringBuilder();
@@ -32,23 +32,49 @@ namespace ObhodBApp;
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Извлекает имя профиля из URI (из #хэштега или ps в vmess)
+        /// </summary>
+        public static string GetProfileName(string uri)
+        {
+            try
+            {
+                if (uri.StartsWith("vmess://", StringComparison.OrdinalIgnoreCase))
+                {
+                    string encoded = uri["vmess://".Length..];
+                    string json = Encoding.UTF8.GetString(Convert.FromBase64String(encoded));
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("ps", out var ps))
+                        return ps.GetString() ?? "main";
+                }
+                else
+                {
+                    var u = new Uri(uri);
+                    if (u.Fragment.Length > 1)
+                        return Uri.UnescapeDataString(u.Fragment[1..]);
+                }
+            }
+            catch { }
+            return "main";
+        }
+
         private static string ConvertVless(string uriStr)
         {
             var uri = new Uri(uriStr);
             var q = HttpUtility.ParseQueryString(uri.Query);
 
-            string name = uri.Fragment.Length > 1 ? uri.Fragment[1..] : "vless-node";
             string uuid = uri.UserInfo;
             string server = uri.Host;
             int port = uri.Port;
 
             var sb = new StringBuilder();
-            sb.AppendLine($"  - name: \"{name}\"");
+            sb.AppendLine($"  - name: \"main\"");
             sb.AppendLine($"    type: vless");
             sb.AppendLine($"    server: {server}");
             sb.AppendLine($"    port: {port}");
             sb.AppendLine($"    uuid: {uuid}");
             sb.AppendLine($"    network: {q["type"] ?? "tcp"}");
+
             if (q["security"] == "reality")
             {
                 sb.AppendLine($"    tls: true");
@@ -75,7 +101,6 @@ namespace ObhodBApp;
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            string name = root.TryGetProperty("ps", out var ps) ? ps.GetString()! : "vmess-node";
             string add = root.GetProperty("add").GetString()!;
             string port = root.GetProperty("port").GetString()!;
             string id = root.GetProperty("id").GetString()!;
@@ -83,7 +108,7 @@ namespace ObhodBApp;
             string tls = root.TryGetProperty("tls", out var tlsVal) ? tlsVal.GetString()! : "";
 
             var sb = new StringBuilder();
-            sb.AppendLine($"  - name: \"{name}\"");
+            sb.AppendLine($"  - name: \"main\"");
             sb.AppendLine($"    type: vmess");
             sb.AppendLine($"    server: {add}");
             sb.AppendLine($"    port: {port}");
@@ -101,13 +126,12 @@ namespace ObhodBApp;
         {
             var uri = new Uri(uriStr);
             string password = uri.UserInfo;
-            string name = uri.Fragment.Length > 1 ? uri.Fragment[1..] : "trojan-node";
             string server = uri.Host;
             int port = uri.Port;
             var q = HttpUtility.ParseQueryString(uri.Query);
 
             var sb = new StringBuilder();
-            sb.AppendLine($"  - name: \"{name}\"");
+            sb.AppendLine($"  - name: \"main\"");
             sb.AppendLine($"    type: trojan");
             sb.AppendLine($"    server: {server}");
             sb.AppendLine($"    port: {port}");
@@ -121,24 +145,13 @@ namespace ObhodBApp;
         private static string ConvertShadowsocks(string uriStr)
         {
             string raw = uriStr["ss://".Length..];
-            string name = "shadowsocks";
 
             if (raw.Contains("#"))
-            {
-                var parts = raw.Split('#');
-                raw = parts[0];
-                name = Uri.UnescapeDataString(parts[1]);
-            }
+                raw = raw.Split('#')[0]; // игнорируем имя — у нас всегда main
 
-            string decoded;
-            if (raw.Contains("@"))
-            {
-                decoded = raw;
-            }
-            else
-            {
-                decoded = Encoding.UTF8.GetString(Convert.FromBase64String(raw));
-            }
+            string decoded = raw.Contains("@")
+                ? raw
+                : Encoding.UTF8.GetString(Convert.FromBase64String(raw));
 
             string[] parts2 = decoded.Split('@');
             string[] auth = parts2[0].Split(':');
@@ -149,7 +162,7 @@ namespace ObhodBApp;
             string port = addr[1];
 
             var sb = new StringBuilder();
-            sb.AppendLine($"  - name: \"{name}\"");
+            sb.AppendLine($"  - name: \"main\"");
             sb.AppendLine($"    type: ss");
             sb.AppendLine($"    server: {server}");
             sb.AppendLine($"    port: {port}");
@@ -164,7 +177,6 @@ namespace ObhodBApp;
             var uri = new Uri(uriStr);
             string server = uri.Host;
             int port = uri.Port;
-            string name = uri.Fragment.Length > 1 ? uri.Fragment[1..] : "socks5-node";
             string user = null, pass = null;
 
             if (!string.IsNullOrEmpty(uri.UserInfo) && uri.UserInfo.Contains(":"))
@@ -175,7 +187,7 @@ namespace ObhodBApp;
             }
 
             var sb = new StringBuilder();
-            sb.AppendLine($"  - name: \"{name}\"");
+            sb.AppendLine($"  - name: \"main\"");
             sb.AppendLine($"    type: socks5");
             sb.AppendLine($"    server: {server}");
             sb.AppendLine($"    port: {port}");
@@ -187,3 +199,4 @@ namespace ObhodBApp;
             return sb.ToString();
         }
     }
+}

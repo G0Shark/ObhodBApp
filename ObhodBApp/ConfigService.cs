@@ -1,47 +1,67 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 
 namespace ObhodBApp;
 
-public class ConfigService
+public class ConfigManager
 {
-    private readonly string _configFile = "configs.json";
+    private readonly string _configFilePath;
+    public List<ConnectionConfig> Configs { get; private set; } = new();
 
-    public ObservableCollection<AppConfig> Configs { get; private set; } = new();
-    public AppConfig? CurrentConfig { get; set; }
+    public event Action? OnCreateConnection; 
 
-    public void Load()
+    public ConfigManager(string configFilePath = "configs.json")
     {
-        if (File.Exists(_configFile))
+        _configFilePath = configFilePath;
+        LoadConfigs();
+    }
+
+    public void LoadConfigs()
+    {
+        if (!File.Exists(_configFilePath))
         {
-            var json = File.ReadAllText(_configFile);
-            var configs = JsonSerializer.Deserialize<ObservableCollection<AppConfig>>(json);
-            if (configs != null)
-                Configs = configs;
+            Configs = new List<ConnectionConfig>();
+            SaveConfigs();
+            return;
         }
 
-        if (Configs.Count > 0)
-            CurrentConfig = Configs[0];
+        try
+        {
+            var json = File.ReadAllText(_configFilePath);
+            Configs = JsonSerializer.Deserialize<List<ConnectionConfig>>(json) ?? new List<ConnectionConfig>();
+        }
+        catch
+        {
+            Configs = new List<ConnectionConfig>();
+        }
     }
 
-    public void Save()
+    public void SaveConfigs()
     {
         var json = JsonSerializer.Serialize(Configs, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(_configFile, json);
+        File.WriteAllText(_configFilePath, json);
     }
 
-    public void AddConfig(string name, string path)
+    public void AddConfig(ConnectionConfig config)
     {
-        var cfg = new AppConfig { Name = name, FilePath = path };
-        Configs.Add(cfg);
-        CurrentConfig = cfg;
-        Save();
+        Configs.Add(config);
+        SaveConfigs();
+    }
+
+    public void HandleSelection(string selectedName)
+    {
+        if (selectedName == "Создать соединение")
+            OnCreateConnection?.Invoke();
     }
 }
 
-public class AppConfig
+public class ConnectionConfig
 {
-    public string Name { get; set; } = "Новый конфиг";
-    public string FilePath { get; set; } = "";
+    public string Name { get; set; }
+    public string FilePath { get; set; }
+
+    public override string ToString() => Name;
 }
