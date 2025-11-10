@@ -88,7 +88,7 @@
             
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                 <materialIcons:MaterialIcon Foreground="Gray" Kind="InformationSlabCircleOutline"/>
-                <TextBlock Foreground="Gray" FontWeight="Bold" FontSize="13" Text="ObhodBApp, сделанная G0Shark. Версия 0.0.0DEV."/>
+                <TextBlock Foreground="Gray" Name="Ver" FontWeight="Bold" FontSize="13" Text="ObhodBApp, сделанная G0Shark. Версия..."/>
             </StackPanel>
             
             <StackPanel HorizontalAlignment="Right" Margin="0,10,0,0">

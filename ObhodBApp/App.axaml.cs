@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -90,4 +91,17 @@ public partial class App : Application
         mainWindow.OnAppExit();
         Environment.Exit(0);
     }
+}
+
+public static class AppInfo
+{
+    public static string FileVersion =>
+        Assembly.GetEntryAssembly()?
+            .GetCustomAttribute<AssemblyFileVersionAttribute>()?
+            .Version ?? "Unknown";
+
+    public static string InformationalVersion =>
+        Assembly.GetEntryAssembly()?
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion ?? "Unknown";
 }

@@ -58,7 +58,7 @@ public partial class UpdateMsg : Window
 
                 if (info == null) return;
 
-                var current = new Version(0, 0, 1);
+                var current = Version.Parse(AppInfo.FileVersion);
                 var latest = Version.Parse(info.version);
 
                 if (latest > current)

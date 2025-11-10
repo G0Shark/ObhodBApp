@@ -77,7 +77,7 @@ public partial class CreateConnection : Window
                     
                     File.WriteAllText(filePath, c);
                     
-                    _configManager.AddConfig(new ConnectionConfig(){FilePath = filePath, Name = name});
+                    _configManager.AddConfig(new ConnectionConfig{FilePath = filePath, Name = name});
                     
                     Close();
                 }

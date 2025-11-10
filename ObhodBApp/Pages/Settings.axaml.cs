@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -19,6 +20,7 @@ public partial class Settings : UserControl
         InitializeComponent();
         CurrentAppSettings = AppSettings.Load();
         DataContext = CurrentAppSettings;
+        Ver.Text = $"ObhodBApp, сделанная G0Shark. Версия {AppInfo.InformationalVersion.Split('+').First()}.";
     }
 
     private void Save(object? sender, RoutedEventArgs e)

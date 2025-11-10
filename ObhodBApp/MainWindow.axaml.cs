@@ -173,6 +173,8 @@ public partial class MainWindow : Window
             
             if (_configManager.Configs.Count > 0)
                 MainBtn.IsEnabled = true;
+
+            ConfigCombo.SelectedIndex = 0;
         };
     }
 
@@ -200,7 +202,7 @@ public partial class MainWindow : Window
         rulesFilePath = Path.Combine(baseDir, "rules.yaml");
 
         if (!File.Exists(rulesFilePath))
-            File.WriteAllText(rulesFilePath, "rules:\n  # Оставьте эту строчку, чтобы весь остальной трафик шёл через интернет\n  - MATCH,DIRECT");
+            File.WriteAllText(rulesFilePath, "rules:\n  #Для пропуска через профиль выбирайте PROXY, напрямую - DIRECT.\n\n  # Оставьте эту строчку, чтобы в программе корректно указывался ваш IP\n  - PROCESS-NAME,ObhodBApp.exe,PROXY\n  # Оставьте эту строчку, чтобы весь остальной трафик шёл через интернет\n  - MATCH,DIRECT");
     }
     
     private async Task LogDelay()
