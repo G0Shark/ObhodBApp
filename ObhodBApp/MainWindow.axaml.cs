@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,6 +9,7 @@ using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Reactive.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +17,7 @@ using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Notifications;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -55,6 +58,7 @@ public partial class MainWindow : Window
     public AppSettings _appSettings;
     private bool _isWindowHidden;
     private ConfigManager _configManager;
+    private string rulesFilePath;
 
     public MainWindow()
     {
@@ -71,16 +75,23 @@ public partial class MainWindow : Window
 
         ConfigCombo.ItemsSource = items;
 
+        if (_configManager.Configs.Count > 0)
+        {
+            ConfigCombo.SelectedIndex = 0;
+            MainBtn.IsEnabled = true;
+        }
+
         ConfigCombo.SelectionChanged += ConfigSelected;
 
         if (_appSettings.checkForUpdates)
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var win = new UpdateMsg();
+                new UpdateMsg();
             });
         }
-        
+
+        RulesFile();
         updater = MainUpdateTask();
         
         Chart.YAxes = new Axis[]
@@ -95,7 +106,7 @@ public partial class MainWindow : Window
             
         menu.Add(new NativeMenuItem("Выход")
         {
-            Command = ReactiveUI.ReactiveCommand.Create(() =>
+            Command = ReactiveCommand.Create(() =>
             {
                 Close();
             })
@@ -126,7 +137,7 @@ public partial class MainWindow : Window
         trayIcon.IsVisible = true;
         
         Editor.Text =
-            File.ReadAllText($"{AppContext.BaseDirectory}\\clash\\config.yaml");
+            File.ReadAllText(rulesFilePath);
 
         CheckIpAdress();
         LogDelay();
@@ -143,19 +154,55 @@ public partial class MainWindow : Window
             return;
         }
         
-        //TODO: Выбор подключения
+        if (string.IsNullOrEmpty(rulesFilePath))
+            RulesFile();
+        
+        controller.UpdateImports(rulesFilePath, selected.FilePath);
     }
 
     private void CreateConn()
     {
-        new CreateConnection(ref _configManager).Show();
-        
-        var items = new List<ConnectionConfig>(_configManager.Configs);
-        items.Add(new ConnectionConfig { Name = "Создать соединение" });
+        CreateConnection w = new CreateConnection(ref _configManager);
+        w.Show();
+        w.Closed += (_, _) =>
+        {
+            var items = new List<ConnectionConfig>(_configManager.Configs);
+            items.Add(new ConnectionConfig { Name = "Создать соединение" });
 
-        ConfigCombo.ItemsSource = items;
+            ConfigCombo.ItemsSource = items;
+            
+            if (_configManager.Configs.Count > 0)
+                MainBtn.IsEnabled = true;
+        };
     }
 
+    private void RulesFile()
+    {
+        string baseDir;
+        
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            baseDir = Path.Combine(documentsPath, "ObhodBApp");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            baseDir = Path.Combine(homePath, ".config", "ObhodBApp");
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("Поддерживаются только Windows и Linux.");
+        }
+        if (!Directory.Exists(baseDir))
+            Directory.CreateDirectory(baseDir);
+        
+        rulesFilePath = Path.Combine(baseDir, "rules.yaml");
+
+        if (!File.Exists(rulesFilePath))
+            File.WriteAllText(rulesFilePath, "rules:\n  # Оставьте эту строчку, чтобы весь остальной трафик шёл через интернет\n  - MATCH,DIRECT");
+    }
+    
     private async Task LogDelay()
     {
         while (Logger.LogBlock == null)
@@ -165,7 +212,7 @@ public partial class MainWindow : Window
         UpdateTray();
     }
 
-    private  void UpdateTray(string? time = "", string? total = "")
+    private void UpdateTray(string? time = "", string? total = "")
     {
         var menu = new NativeMenu();
 
@@ -350,6 +397,19 @@ public partial class MainWindow : Window
         {
             MainBtn.IsEnabled = false;
             MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
+            if (!controller.TryConfig())
+            {
+                MainBtn.Foreground = Brushes.Red;
+                MainBtnIcon.Animation = MaterialIconAnimation.None;
+                var notificationManager = new WindowNotificationManager(this)
+                {
+                    Position = NotificationPosition.TopRight
+                };
+                notificationManager.Show(
+                    new Notification("Ошибка", "Конфиг содержит ошибки", NotificationType.Error)
+                );
+                MainBtn.IsEnabled = true;
+            }
             controller.Start();
             secs = 0;
             recvAllSecs = 0;
@@ -368,6 +428,7 @@ public partial class MainWindow : Window
             controller.Stop();
             trayIcon.Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/icon.ico")));
             TimeIcon.Animation = MaterialIconAnimation.FadeInOut;
+            MainBtn.Foreground = null;
             MainBtnIcon.Animation = MaterialIconAnimation.None;
             isEnable = false;
             MainBtn.IsEnabled = true;
@@ -433,15 +494,17 @@ public partial class MainWindow : Window
 
     private void ClashConfigSave(object? sender, RoutedEventArgs e)
     {
-        string cfgPath = $"{AppContext.BaseDirectory}\\clash\\config.yaml";
+        if (string.IsNullOrEmpty(rulesFilePath))
+            RulesFile();
+        
         string reserve =
-            File.ReadAllText(cfgPath);
+            File.ReadAllText(rulesFilePath);
 
-        File.WriteAllText(cfgPath, Editor.Text);
+        File.WriteAllText(rulesFilePath, Editor.Text);
         
         if (!controller.TryConfig())
         {
-            File.WriteAllText(cfgPath, reserve);
+            File.WriteAllText(rulesFilePath, reserve);
             CfgWait.Animation = MaterialIconAnimation.FadeInOut;
             CfgWait.Kind = MaterialIconKind.Error;
             return;

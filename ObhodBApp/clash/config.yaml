@@ -26,48 +26,6 @@ dns:
     geoip: true
     geoip-code: US
 
-proxies:
-  - name: "main"
-    type: ss
-    server: 151.241.229.223
-    port: 43231
-    cipher: chacha20-ietf-poly1305
-    password: CwDWHbZIVjM4EDAkDF0FZRd8jEDZ6PIPq6k7yLh0uE0A
-    udp: true
-    plugin: null
-    timeout: 60
-
-proxy-groups:
-  - name: "ObhodBlokirovok"
-    type: select
-    proxies:
-      - "main"
-
-rules:
-  # YouTube
-  - DOMAIN-SUFFIX,youtube.com,ObhodBlokirovok
-  - DOMAIN-SUFFIX,googlevideo.com,ObhodBlokirovok
-  - DOMAIN-SUFFIX,ytimg.com,ObhodBlokirovok
-  - DOMAIN-SUFFIX,sponsor.ajay.com,ObhodBlokirovok
-  - DOMAIN-KEYWORD,youtube,ObhodBlokirovok
-  - DOMAIN-KEYWORD,googlevideo,ObhodBlokirovok
-  - DOMAIN-KEYWORD,ytimg,ObhodBlokirovok
-  # X.com / Twitter
-  - DOMAIN-SUFFIX,x.com,ObhodBlokirovok
-  - DOMAIN-SUFFIX,twitter.com,ObhodBlokirovok
-  - DOMAIN-KEYWORD,twitter,ObhodBlokirovok
-  - DOMAIN-KEYWORD,twitter,ObhodBlokirovok
-  - DOMAIN-KEYWORD,twimg,ObhodBlokirovok
-  # Discord
-  - PROCESS-NAME,vesktop.exe,ObhodBlokirovok
-  - DOMAIN-KEYWORD,discord,ObhodBlokirovok
-  - PROCESS-NAME,Discord.exe,ObhodBlokirovok
-  # DeviantArt
-  - DOMAIN-SUFFIX,wixmp,ObhodBlokirovok
-  - DOMAIN-SUFFIX,winxmp.com,ObhodBlokirovok
-  - DOMAIN-KEYWORD,wixmp,ObhodBlokirovok
-    
-  - PROCESS-NAME,RocketLeague.exe,ObhodBlokirovok
-    
-  # Оставьте эту строчку, чтобы весь остальной траффик шёл через интернет
-  - MATCH,DIRECT
+import:
+  - ./rules.yaml
+  - ./selected_proxy.yaml

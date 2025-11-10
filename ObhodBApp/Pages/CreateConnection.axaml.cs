@@ -15,9 +15,7 @@ public partial class CreateConnection : Window
     public CreateConnection(ref ConfigManager configManager)
     {
         InitializeComponent();
-        Console.WriteLine("dsdsdsd");
         _configManager = configManager;
-        Console.WriteLine("dsdsdsdfdff");
     }
 
     private async Task<string?> GetClipboardTextAsync()
@@ -36,7 +34,6 @@ public partial class CreateConnection : Window
     private async void Selected(object? sender, SelectionChangedEventArgs e)
     {
         //TODO: Остальные варианты
-        Console.WriteLine("helloing");
         switch (OptionsListBox.SelectedIndex)
         {
             case 0:
@@ -54,12 +51,12 @@ public partial class CreateConnection : Window
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
                         string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                        baseDir = Path.Combine(documentsPath, "ObhodBApp");
+                        baseDir = Path.Combine(documentsPath, "ObhodBApp", "configs");
                     }
                     else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     {
                         string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                        baseDir = Path.Combine(homePath, ".config", "ObhodBApp");
+                        baseDir = Path.Combine(homePath, ".config", "ObhodBApp", "configs");
                     }
                     else
                     {

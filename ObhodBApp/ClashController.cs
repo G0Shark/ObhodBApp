@@ -9,6 +9,7 @@ using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Material.Icons;
+using YamlDotNet.RepresentationModel;
 
 namespace ObhodBApp;
 
@@ -56,7 +57,7 @@ public class ClashController
                 AddConsoleLine("[ ", Colors.White);
                 AddConsoleLine("EXIT", Colors.OrangeRed);
                 AddConsoleLine(" ] " + "Программа завершила работу с кодом " + clash.ExitCode + "\n", Colors.White);
-
+                
                 window.MainBtnIcon.Foreground = Brushes.Orange;
                 window.MainBtnIcon.Animation = MaterialIconAnimation.None;
                 window.isEnable = false;
@@ -174,6 +175,50 @@ public class ClashController
         });
     }
 
+    public void UpdateImports(string rulesPath, string proxyPath)
+    {
+        string configPath = Path.GetFullPath($"{mainDir}\\clash\\config.yaml");
+        
+        var yaml = new YamlStream();
+        using (var reader = new StreamReader(configPath))
+            yaml.Load(reader);
+
+        var root = (YamlMappingNode)yaml.Documents[0].RootNode;
+
+        var importNode = new YamlSequenceNode
+        {
+            new YamlScalarNode(proxyPath),
+            new YamlScalarNode(rulesPath)
+        };
+        
+        if (root.Children.ContainsKey("import"))
+        {
+            root.Children[new YamlScalarNode("import")] = importNode;
+        }
+        else
+        {
+            var newChildren = new YamlMappingNode();
+
+            foreach (var entry in root.Children)
+            {
+                if (entry.Key.ToString() == "proxy-groups")
+                {
+                    newChildren.Add("import", importNode);
+                }
+                newChildren.Add(entry.Key, entry.Value);
+            }
+            
+            root.Children.Clear();
+            foreach (var entry in newChildren.Children)
+            {
+                root.Add(entry.Key, entry.Value);
+            }
+        }
+
+        using (var writer = new StreamWriter(configPath))
+            yaml.Save(writer, assignAnchors: false);
+    }
+    
     public bool TryConfig()
     {
         ProcessStartInfo clashsi = new ProcessStartInfo

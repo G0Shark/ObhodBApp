@@ -29,12 +29,10 @@ namespace ObhodBApp
             var sb = new StringBuilder();
             sb.AppendLine("proxies:");
             sb.Append(ConvertToClashProxyBlock(uri));
+            sb.Append("\nproxy-groups:\n  - name: PROXY\n    type: select\n    proxies:\n      - main");
             return sb.ToString();
         }
-
-        /// <summary>
-        /// Извлекает имя профиля из URI (из #хэштега или ps в vmess)
-        /// </summary>
+        
         public static string GetProfileName(string uri)
         {
             try
