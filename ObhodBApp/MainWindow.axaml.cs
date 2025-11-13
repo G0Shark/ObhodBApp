@@ -192,7 +192,7 @@ public partial class MainWindow : Window
         _rulesFilePath = Path.Combine(baseDir, "rules.yaml");
 
         if (!File.Exists(_rulesFilePath))
-            File.WriteAllText(_rulesFilePath, "rules:\n  #Для пропуска через профиль выбирайте PROXY, напрямую - DIRECT.\n\n  # Оставьте эту строчку, чтобы в программе корректно указывался ваш IP\n  - PROCESS-NAME,ObhodBApp.exe,PROXY\n  # Оставьте эту строчку, чтобы весь остальной трафик шёл через интернет\n  - MATCH,DIRECT");
+            File.WriteAllText(_rulesFilePath, "rules:\n  #Пример правила: - DOMAIN-KEYWORD,youtube.com\n\n\n  # Оставьте эту строчку, чтобы в программе корректно указывался ваш IP\n  - PROCESS-NAME,ObhodBApp.exe");
     }
     
     private async Task LogDelay()
@@ -493,14 +493,6 @@ public partial class MainWindow : Window
             File.ReadAllText(_rulesFilePath);
 
         File.WriteAllText(_rulesFilePath, Editor.Text);
-        
-        if (!Controller.TryConfig())
-        {
-            File.WriteAllText(_rulesFilePath, reserve);
-            CfgWait.Animation = MaterialIconAnimation.FadeInOut;
-            CfgWait.Kind = MaterialIconKind.Error;
-            return;
-        }
         
         CfgWait.Animation = MaterialIconAnimation.FadeInOut;
         CfgWait.Kind = MaterialIconKind.Success;
