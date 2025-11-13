@@ -1,28 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
-using System.Reactive.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Animation;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using Avalonia.Styling;
 using Avalonia.Threading;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -36,36 +26,36 @@ namespace ObhodBApp;
 
 public partial class MainWindow : Window
 {
-    public bool isEnable;
-    public TrayIcon trayIcon;
-    NetworkInterface adapter = NetworkInterface.GetAllNetworkInterfaces()
+    public bool IsEnable;
+    public TrayIcon TrayIcon;
+    NetworkInterface _adapter = NetworkInterface.GetAllNetworkInterfaces()
         .FirstOrDefault(ni => ni.Name == "Meta")!;
 
-    private ObservableCollection<double> line1Values = new()
+    private ObservableCollection<double> _line1Values = new()
     {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
-    private ObservableCollection<double> line2Values = new()
+    private ObservableCollection<double> _line2Values = new()
     {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
 
-    private long recvAllSecs = 1;
-    private long sendAllSecs = 1;
-    private int secs = 1;
-    private ClashController controller;
+    private long _recvAllSecs = 1;
+    private long _sendAllSecs = 1;
+    private int _secs = 1;
+    public ClashController Controller;
     private Task updater;
-    public AppSettings _appSettings;
+    public AppSettings AppSettings;
     private bool _isWindowHidden;
     private ConfigManager _configManager;
-    private string rulesFilePath;
+    private string _rulesFilePath;
 
     public MainWindow()
     {
         InitializeComponent();
-        controller = new ClashController(this);
+        Controller = new ClashController(this);
         
-        _appSettings = AppSettings.Load();
+        AppSettings = AppSettings.Load();
         
         _configManager = new ConfigManager();
         _configManager.OnCreateConnection += CreateConn;
@@ -83,7 +73,7 @@ public partial class MainWindow : Window
 
         ConfigCombo.SelectionChanged += ConfigSelected;
 
-        if (_appSettings.checkForUpdates)
+        if (AppSettings.checkForUpdates)
         {
             Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -112,14 +102,14 @@ public partial class MainWindow : Window
             })
         });
             
-        trayIcon = new TrayIcon
+        TrayIcon = new TrayIcon
         {
             ToolTipText = "ObhodBApp",
             Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/icon.ico"))),
             Menu = menu
         };
 
-        trayIcon.Clicked += (sender, e) =>
+        TrayIcon.Clicked += (sender, e) =>
         {
             if (_isWindowHidden)
             {
@@ -134,10 +124,10 @@ public partial class MainWindow : Window
             }
         };
         
-        trayIcon.IsVisible = true;
+        TrayIcon.IsVisible = true;
         
         Editor.Text =
-            File.ReadAllText(rulesFilePath);
+            File.ReadAllText(_rulesFilePath);
 
         CheckIpAdress();
         LogDelay();
@@ -154,10 +144,10 @@ public partial class MainWindow : Window
             return;
         }
         
-        if (string.IsNullOrEmpty(rulesFilePath))
+        if (string.IsNullOrEmpty(_rulesFilePath))
             RulesFile();
         
-        controller.UpdateImports(rulesFilePath, selected.FilePath);
+        Controller.UpdateImports(_rulesFilePath, selected.FilePath);
     }
 
     private void CreateConn()
@@ -199,10 +189,10 @@ public partial class MainWindow : Window
         if (!Directory.Exists(baseDir))
             Directory.CreateDirectory(baseDir);
         
-        rulesFilePath = Path.Combine(baseDir, "rules.yaml");
+        _rulesFilePath = Path.Combine(baseDir, "rules.yaml");
 
-        if (!File.Exists(rulesFilePath))
-            File.WriteAllText(rulesFilePath, "rules:\n  #Для пропуска через профиль выбирайте PROXY, напрямую - DIRECT.\n\n  # Оставьте эту строчку, чтобы в программе корректно указывался ваш IP\n  - PROCESS-NAME,ObhodBApp.exe,PROXY\n  # Оставьте эту строчку, чтобы весь остальной трафик шёл через интернет\n  - MATCH,DIRECT");
+        if (!File.Exists(_rulesFilePath))
+            File.WriteAllText(_rulesFilePath, "rules:\n  #Для пропуска через профиль выбирайте PROXY, напрямую - DIRECT.\n\n  # Оставьте эту строчку, чтобы в программе корректно указывался ваш IP\n  - PROCESS-NAME,ObhodBApp.exe,PROXY\n  # Оставьте эту строчку, чтобы весь остальной трафик шёл через интернет\n  - MATCH,DIRECT");
     }
     
     private async Task LogDelay()
@@ -218,7 +208,7 @@ public partial class MainWindow : Window
     {
         var menu = new NativeMenu();
 
-        if (!isEnable)
+        if (!IsEnable)
         {
             menu.Add(new NativeMenuItem("Включить")
             {
@@ -250,7 +240,7 @@ public partial class MainWindow : Window
                 )
             });
 
-            trayIcon.Menu = menu;
+            TrayIcon.Menu = menu;
             
             return;
         }
@@ -290,7 +280,7 @@ public partial class MainWindow : Window
             )
         });
 
-        trayIcon.Menu = menu;
+        TrayIcon.Menu = menu;
     }
     
     private async Task MainUpdateTask()
@@ -299,54 +289,54 @@ public partial class MainWindow : Window
         {
             try
             {
-                var stats1 = adapter.GetIPv4Statistics();
+                var stats1 = _adapter.GetIPv4Statistics();
                 long recv1 = stats1.BytesReceived;
                 long sent1 = stats1.BytesSent;
 
-                await Task.Delay(_appSettings.updateInterval);
+                await Task.Delay(AppSettings.updateInterval);
 
-                var stats2 = adapter.GetIPv4Statistics();
+                var stats2 = _adapter.GetIPv4Statistics();
                 long recv2 = stats2.BytesReceived;
                 long sent2 = stats2.BytesSent;
 
                 long recvPerSec = recv2 - recv1;
                 long sentPerSec = sent2 - sent1;
 
-                if (isEnable)
+                if (IsEnable)
                 {
-                    recvAllSecs += recvPerSec;
-                    sendAllSecs += sentPerSec;
-                    secs += _appSettings.updateInterval;
+                    _recvAllSecs += recvPerSec;
+                    _sendAllSecs += sentPerSec;
+                    _secs += AppSettings.updateInterval;
                 }
 
                 long totalReceived = stats2.BytesReceived;
                 long totalSent = stats2.BytesSent;
                 long totalTraffic = totalReceived + totalSent;
 
-                UpdateTray(TimeSpan.FromMilliseconds(secs).ToString(@"hh\:mm\:ss"), FormatBytes(totalTraffic));
+                UpdateTray(TimeSpan.FromMilliseconds(_secs).ToString(@"hh\:mm\:ss"), FormatBytes(totalTraffic));
 
                 ErrPckText.Text = (stats1.IncomingPacketsWithErrors + stats1.OutgoingPacketsWithErrors).ToString();
 
-                if (secs >= _appSettings.updateInterval)
+                if (_secs >= AppSettings.updateInterval)
                 {
-                    MUplText.Text = FormatBytes(sendAllSecs / (long)TimeSpan.FromMilliseconds(secs).TotalSeconds);
-                    MDwlText.Text = FormatBytes(recvAllSecs / (long)TimeSpan.FromMilliseconds(secs).TotalSeconds);
+                    MUplText.Text = FormatBytes(_sendAllSecs / (long)TimeSpan.FromMilliseconds(_secs).TotalSeconds);
+                    MDwlText.Text = FormatBytes(_recvAllSecs / (long)TimeSpan.FromMilliseconds(_secs).TotalSeconds);
                 }
-                Time.Text = TimeSpan.FromMilliseconds(secs).ToString(@"hh\:mm\:ss");
+                Time.Text = TimeSpan.FromMilliseconds(_secs).ToString(@"hh\:mm\:ss");
 
                 UplText.Text = FormatBytes(sentPerSec);
                 DwlText.Text = FormatBytes(recvPerSec);
 
                 TrafficText.Text = FormatBytes(totalTraffic);
 
-                line1Values.Add(recvPerSec);
-                line2Values.Add(sentPerSec);
+                _line1Values.Add(recvPerSec);
+                _line2Values.Add(sentPerSec);
 
-                while (line1Values.Count > _appSettings.updatesCount)
-                    line1Values.RemoveAt(0);
+                while (_line1Values.Count > AppSettings.updatesCount)
+                    _line1Values.RemoveAt(0);
 
-                while (line2Values.Count > _appSettings.updatesCount)
-                    line2Values.RemoveAt(0);
+                while (_line2Values.Count > AppSettings.updatesCount)
+                    _line2Values.RemoveAt(0);
 
                 Chart.Series = new ISeries[]
                 {
@@ -354,7 +344,7 @@ public partial class MainWindow : Window
                     {
                         Fill = new SolidColorPaint(new SKColor(SKColors.Green.Red, SKColors.Green.Green,
                             SKColors.Green.Blue, 60)),
-                        Stroke = new SolidColorPaint(SKColors.Green) { StrokeThickness = 4 }, Values = line1Values,
+                        Stroke = new SolidColorPaint(SKColors.Green) { StrokeThickness = 4 }, Values = _line1Values,
                         GeometryFill = null, GeometryStroke = null, AnimationsSpeed = TimeSpan.Zero,
                         YToolTipLabelFormatter = point => { return FormatBytes((long)point.Model); }
                     },
@@ -362,7 +352,7 @@ public partial class MainWindow : Window
                     {
                         Fill = new SolidColorPaint(new SKColor(SKColors.Orange.Red, SKColors.Orange.Green,
                             SKColors.Orange.Blue, 60)),
-                        Stroke = new SolidColorPaint(SKColors.Orange) { StrokeThickness = 4 }, Values = line2Values,
+                        Stroke = new SolidColorPaint(SKColors.Orange) { StrokeThickness = 4 }, Values = _line2Values,
                         GeometryFill = null, GeometryStroke = null, AnimationsSpeed = TimeSpan.Zero,
                         YToolTipLabelFormatter = point => { return FormatBytes((long)point.Model); }
                     },
@@ -395,11 +385,11 @@ public partial class MainWindow : Window
 
     void ToggleClash()
     {
-        if (!isEnable)
+        if (!IsEnable)
         {
             MainBtn.IsEnabled = false;
             MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
-            if (!controller.TryConfig())
+            if (!Controller.TryConfig())
             {
                 MainBtn.Foreground = Brushes.Red;
                 MainBtnIcon.Animation = MaterialIconAnimation.None;
@@ -412,14 +402,14 @@ public partial class MainWindow : Window
                 );
                 MainBtn.IsEnabled = true;
             }
-            controller.Start();
-            secs = 0;
-            recvAllSecs = 0;
-            sendAllSecs = 0;
-            trayIcon.Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/enabled.ico")));
+            Controller.Start();
+            _secs = 0;
+            _recvAllSecs = 0;
+            _sendAllSecs = 0;
+            TrayIcon.Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/enabled.ico")));
             TimeIcon.Animation = MaterialIconAnimation.None;
             MainBtnIcon.Animation = MaterialIconAnimation.Spin;
-            isEnable = true;
+            IsEnable = true;
             MainBtn.IsEnabled = true;
 
         }
@@ -427,12 +417,12 @@ public partial class MainWindow : Window
         {
             MainBtn.IsEnabled = false;
             MainBtnIcon.Animation = MaterialIconAnimation.FadeInOut;
-            controller.Stop();
-            trayIcon.Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/icon.ico")));
+            Controller.Stop();
+            TrayIcon.Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ObhodBApp/icon.ico")));
             TimeIcon.Animation = MaterialIconAnimation.FadeInOut;
             MainBtn.Foreground = null;
             MainBtnIcon.Animation = MaterialIconAnimation.None;
-            isEnable = false;
+            IsEnable = false;
             MainBtn.IsEnabled = true;
         }
     }
@@ -481,7 +471,7 @@ public partial class MainWindow : Window
     
     protected override void OnClosing(WindowClosingEventArgs e)
     {
-        if (_appSettings.goToTray)
+        if (AppSettings.goToTray)
         {
             base.OnClosing(e);
             e.Cancel = true;
@@ -491,22 +481,22 @@ public partial class MainWindow : Window
     
     public void OnAppExit()
     {
-        controller.Stop();
+        Controller.Stop();
     }
 
     private void ClashConfigSave(object? sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(rulesFilePath))
+        if (string.IsNullOrEmpty(_rulesFilePath))
             RulesFile();
         
         string reserve =
-            File.ReadAllText(rulesFilePath);
+            File.ReadAllText(_rulesFilePath);
 
-        File.WriteAllText(rulesFilePath, Editor.Text);
+        File.WriteAllText(_rulesFilePath, Editor.Text);
         
-        if (!controller.TryConfig())
+        if (!Controller.TryConfig())
         {
-            File.WriteAllText(rulesFilePath, reserve);
+            File.WriteAllText(_rulesFilePath, reserve);
             CfgWait.Animation = MaterialIconAnimation.FadeInOut;
             CfgWait.Kind = MaterialIconKind.Error;
             return;

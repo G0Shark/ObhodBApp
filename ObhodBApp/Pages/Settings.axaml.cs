@@ -27,14 +27,14 @@ public partial class Settings : UserControl
     {
         CurrentAppSettings.Save();
         var window = VisualRoot as MainWindow;
-        window._appSettings = CurrentAppSettings;
+        window.AppSettings = CurrentAppSettings;
     }
 
     private void CheckToggle(object? sender, RoutedEventArgs e)
     {
         CurrentAppSettings.Save();
         var window = VisualRoot as MainWindow;
-        window._appSettings = CurrentAppSettings;
+        window.AppSettings = CurrentAppSettings;
         
         if (sender is ToggleSwitch checkBox)
         {
@@ -131,5 +131,13 @@ public partial class Settings : UserControl
 
         if (!string.IsNullOrEmpty(output)) Console.WriteLine(output);
         if (!string.IsNullOrEmpty(error)) Console.WriteLine(error);
+    }
+
+    private void ReverseProxy(object? sender, RoutedEventArgs e)
+    {
+        CurrentAppSettings.Save();
+        var window = VisualRoot as MainWindow;
+        window.AppSettings = CurrentAppSettings;
+        window.Controller.ReverseProxy();
     }
 }

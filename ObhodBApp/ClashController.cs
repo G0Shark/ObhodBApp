@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -10,6 +11,8 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Material.Icons;
 using YamlDotNet.RepresentationModel;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace ObhodBApp;
 
@@ -48,6 +51,25 @@ public class ClashController
             //MakeProcessKillOnParentExit(clash);
         }
         
+        string baseDir;
+        
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            baseDir = Path.Combine(documentsPath, "ObhodBApp");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            baseDir = Path.Combine(homePath, ".config", "ObhodBApp");
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("Поддерживаются только Windows и Linux.");
+        }
+        
+        clashsi.Environment["SAFE_PATHS"] = baseDir;
+        
         clash.OutputDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data??""); }); };
         clash.ErrorDataReceived += async (sender, args) => { await Dispatcher.UIThread.InvokeAsync(() => { FormatAndOut(args.Data??""); }); };
         clash.Exited += (sender, args) =>
@@ -60,13 +82,28 @@ public class ClashController
                 
                 window.MainBtnIcon.Foreground = Brushes.Orange;
                 window.MainBtnIcon.Animation = MaterialIconAnimation.None;
-                window.isEnable = false;
+                window.IsEnable = false;
             });
         };
         
-        Dispatcher.UIThread.Invoke(() => { clash.Start(); });
+        clash.Start();
         clash.BeginOutputReadLine();
         clash.BeginErrorReadLine();
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            IntPtr job = CreateJobObject(IntPtr.Zero, null);
+
+            var info = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
+            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+
+            IntPtr infoPtr = Marshal.AllocHGlobal(Marshal.SizeOf(info));
+            Marshal.StructureToPtr(info, infoPtr, false);
+
+            SetInformationJobObject(job, JobObjectInfoType.JobObjectExtendedLimitInformation, infoPtr, (uint)Marshal.SizeOf(info));
+            
+            AssignProcessToJobObject(job, clash.Handle);
+        }
         
         Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -175,48 +212,74 @@ public class ClashController
         });
     }
 
-    public void UpdateImports(string rulesPath, string proxyPath)
+    public void ReverseProxy()
     {
         string configPath = Path.GetFullPath($"{mainDir}\\clash\\config.yaml");
-        
-        var yaml = new YamlStream();
-        using (var reader = new StreamReader(configPath))
-            yaml.Load(reader);
 
-        var root = (YamlMappingNode)yaml.Documents[0].RootNode;
+        string yamlText = File.ReadAllText(configPath);
 
-        var importNode = new YamlSequenceNode
-        {
-            new YamlScalarNode(proxyPath),
-            new YamlScalarNode(rulesPath)
-        };
-        
-        if (root.Children.ContainsKey("import"))
-        {
-            root.Children[new YamlScalarNode("import")] = importNode;
-        }
-        else
-        {
-            var newChildren = new YamlMappingNode();
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
 
-            foreach (var entry in root.Children)
+        var config = deserializer.Deserialize<Dictionary<string, object>>(yamlText);
+
+        var rules = (config["rules"] as List<object>) ?? new List<object>();
+        var newRules = new List<object>();
+
+        foreach (var ruleObj in rules)
+        {
+            if (ruleObj is string rule)
             {
-                if (entry.Key.ToString() == "proxy-groups")
-                {
-                    newChildren.Add("import", importNode);
-                }
-                newChildren.Add(entry.Key, entry.Value);
+                if (rule.Contains("RULE-SET,my_rules,PROXY"))
+                    newRules.Add(rule.Replace("PROXY", "DIRECT"));
+                else if (rule.Contains("RULE-SET,my_rules,DIRECT"))
+                    newRules.Add(rule.Replace("DIRECT", "PROXY"));
+                else if (rule.Contains("MATCH,PROXY"))
+                    newRules.Add(rule.Replace("PROXY", "DIRECT"));
+                else if (rule.Contains("MATCH,DIRECT"))
+                    newRules.Add(rule.Replace("DIRECT", "PROXY"));
+                else
+                    newRules.Add(rule);
             }
-            
-            root.Children.Clear();
-            foreach (var entry in newChildren.Children)
+            else
             {
-                root.Add(entry.Key, entry.Value);
+                newRules.Add(ruleObj);
             }
         }
 
-        using (var writer = new StreamWriter(configPath))
-            yaml.Save(writer, assignAnchors: false);
+        config["rules"] = newRules;
+
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults)
+            .Build();
+
+        string output = serializer.Serialize(config);
+        File.WriteAllText(configPath, output);
+    }
+    
+    public void UpdateImports(string rulesPath, string proxyPath)
+    {
+        string configFile = Path.GetFullPath($"{mainDir}\\clash\\config.yaml");
+        
+        string yaml = File.ReadAllText(configFile);
+        
+        yaml = Regex.Replace(
+            yaml,
+            @"(proxy-providers:\s*\r?\n\s*main:\s*\r?\n(?:.*\r?\n)*?\s*path:\s*)([^\r\n]+)",
+            $"$1{proxyPath.Replace("\\", "/")}",
+            RegexOptions.IgnoreCase
+        );
+        
+        yaml = Regex.Replace(
+            yaml,
+            @"(rule-providers:\s*\r?\n\s*my_rules:\s*\r?\n(?:.*\r?\n)*?\s*path:\s*)([^\r\n]+)",
+            $"$1{rulesPath.Replace("\\", "/")}",
+            RegexOptions.IgnoreCase
+        );
+
+        File.WriteAllText(configFile, yaml);
     }
     
     public bool TryConfig()
@@ -230,6 +293,25 @@ public class ClashController
             RedirectStandardOutput = true,
             RedirectStandardError = true
         };
+        
+        string baseDir;
+        
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            baseDir = Path.Combine(documentsPath, "ObhodBApp");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            baseDir = Path.Combine(homePath, ".config", "ObhodBApp");
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("Поддерживаются только Windows и Linux.");
+        }
+        
+        clashsi.Environment["SAFE_PATHS"] = baseDir;
         
         Process testCfg = new Process
         {
@@ -248,13 +330,18 @@ public class ClashController
     }
     
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-    static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string? lpName);
+    static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string? name);
 
-    [DllImport("kernel32.dll")]
-    static extern bool SetInformationJobObject(IntPtr hJob, int JobObjectInfoClass, ref JOBOBJECT_BASIC_LIMIT_INFORMATION lpJobObjectInfo, int cbJobObjectInfoLength);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool SetInformationJobObject(IntPtr hJob, JobObjectInfoType infoType, IntPtr lpJobObjectInfo, uint cbJobObjectInfoLength);
 
-    [DllImport("kernel32.dll")]
-    static extern bool AssignProcessToJobObject(IntPtr hJob, IntPtr hProcess);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
+
+    enum JobObjectInfoType
+    {
+        JobObjectExtendedLimitInformation = 9
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     struct JOBOBJECT_BASIC_LIMIT_INFORMATION
@@ -270,17 +357,27 @@ public class ClashController
         public uint SchedulingClass;
     }
 
-    const int JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000;
-    const int JobObjectExtendedLimitInformation = 9;
-
-    public static void MakeProcessKillOnParentExit(Process process)
+    [StructLayout(LayoutKind.Sequential)]
+    struct IO_COUNTERS
     {
-        var job = CreateJobObject(IntPtr.Zero, null);
-        var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION
-        {
-            LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-        };
-        SetInformationJobObject(job, JobObjectExtendedLimitInformation, ref info, Marshal.SizeOf<JOBOBJECT_BASIC_LIMIT_INFORMATION>());
-        AssignProcessToJobObject(job, process.Handle);
+        public ulong ReadOperationCount;
+        public ulong WriteOperationCount;
+        public ulong OtherOperationCount;
+        public ulong ReadTransferCount;
+        public ulong WriteTransferCount;
+        public ulong OtherTransferCount;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+    {
+        public JOBOBJECT_BASIC_LIMIT_INFORMATION BasicLimitInformation;
+        public IO_COUNTERS IoInfo;
+        public UIntPtr ProcessMemoryLimit;
+        public UIntPtr JobMemoryLimit;
+        public UIntPtr PeakProcessMemoryUsed;
+        public UIntPtr PeakJobMemoryUsed;
+    }
+
+    const uint JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000;
 }

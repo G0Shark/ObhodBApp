@@ -8,6 +8,7 @@
         <entry key="ObhodBApp/Pages/CreateConnection.axaml" value="ObhodBApp/ObhodBApp.csproj" />
         <entry key="ObhodBApp/Pages/ErrorMiddleware.axaml" value="ObhodBApp/ObhodBApp.csproj" />
         <entry key="ObhodBApp/Pages/Settings.axaml" value="ObhodBApp/ObhodBApp.csproj" />
+        <entry key="ObhodBApp/Pages/UpdateMsg.axaml" value="ObhodBApp/ObhodBApp.csproj" />
         <entry key="ObhodBApp/UpdateMsg.axaml" value="ObhodBApp/ObhodBApp.csproj" />
       </map>
     </option>

@@ -26,6 +26,23 @@ dns:
     geoip: true
     geoip-code: US
 
-import:
-  - ./rules.yaml
-  - ./selected_proxy.yaml
+proxy-providers:
+  main:
+    type: file
+    path: C:\Users\g0shark\Documents\ObhodBApp\configs\main.yaml
+
+proxy-groups:
+  - name: "PROXY"
+    type: select
+    use:
+      - main
+
+rule-providers:
+  my_rules:
+    type: file
+    path: C:\Users\g0shark\Documents\ObhodBApp\rules.yaml
+    behavior: classical
+
+rules:
+  - RULE-SET,my_rules,PROXY
+  - MATCH,DIRECT
